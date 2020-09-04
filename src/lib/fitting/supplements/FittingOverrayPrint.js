@@ -5,7 +5,7 @@ export function processOverrayPrint(listPrintTextureBarycentric, mapMatMesh) {
   if (!listPrintTextureBarycentric || !mapMatMesh) return;
 
   // TODO: Test only
-  //   mapMatMesh.forEach((matMesh) => (matMesh.visible = false));
+  // mapMatMesh.forEach((matMesh) => (matMesh.visible = false));
 
   const listPrintTexture = readData(listPrintTextureBarycentric);
   // console.log(listPrintTexture);
@@ -28,15 +28,7 @@ export function processOverrayPrint(listPrintTextureBarycentric, mapMatMesh) {
     //   matMesh.visible = false;
     // }
     const textureMatMesh = mapMatMesh.get(obj.printTextureMatMeshID);
-    console.log(textureMatMesh);
-    // console.log(obj.printTextureMatMeshID);
-    // if (textureMatMesh) {
-    //   console.log(textureMatMesh);
-    // textureMatMesh.visible = true;
-    // } else {
-    //   console.log("textureMatMesh missing: " + obj.printTextureMatMeshID);
-    // }
-    // // const baryPointList = obj.baryPointList;
+    // console.log(textureMatMesh);
 
     process(matMesh, textureMatMesh, obj.listABG, obj.listPtIndex);
 
@@ -98,47 +90,38 @@ function process(matMesh, textureMatMesh, listABG, listPtIndex) {
   if (!matMesh) return;
 
   const vertexCount = textureMatMesh.geometry.attributes.position.count;
-  const texturePos = textureMatMesh.geometry.attributes.position.array;
-  const textureNormal = textureMatMesh.geometry.attributes.normal.array;
-
+  const texMeshPos = textureMatMesh.geometry.attributes.position.array;
   const meshPos = matMesh.geometry.attributes.position.array;
-  const meshNormal = matMesh.geometry.attributes.normal.array;
-  // const renderPos = new THREE.Vector3(vertexCount);
-  // const texCoord = new THREE.Vector2(vertexCount);
+  const uv = matMesh.geometry.attributes.uv.array;
 
-  if (vertexCount !== listABG.length || vertexCount !== listPtIndex.length) {
-    console.log("Warning: Invalid data");
-    console.log({ pos: meshPos, listAGB: listABG, listPtIndex: listPtIndex });
-    console.log(matMesh);
-    return;
-  } else {
-    console.log("ok");
-    console.log({ pos: meshPos, listAGB: listABG, listPtIndex: listPtIndex });
-  }
+  const bBoth = vertexCount / 2 === listABG.length;
+  // console.warn(bBoth, vertexCount, listABG.length);
+
+  // if (vertexCount !== listABG.length || vertexCount !== listPtIndex.length) {
+  //   console.log("Warning: Invalid data");
+  //   console.log({
+  //     pos: texMeshPos,
+  //     listAGB: listABG,
+  //     listPtIndex: listPtIndex,
+  //   });
+  //   console.log(matMesh);
+  //   return;
+  // } else {
+  //   console.log("ok");
+  //   console.log({
+  //     pos: texMeshPos,
+  //     listAGB: listABG,
+  //     listPtIndex: listPtIndex,
+  //   });
+  // }
 
   const getPos = (idx) => {
-    if (idx * 3 > meshPos.length) console.log(idx);
-    // console.log(meshPos[idx * 3]);
-    // console.log(
-    //   idx,
-    //   meshPos.length,
-    //   meshPos[idx * 3],
-    //   meshPos[idx * 3 + 1],
-    //   meshPos[idx * 3 + 2]
-    // );
+    // if (idx * 3 > meshPos.length) console.log(idx);
 
     return new THREE.Vector3(
       meshPos[idx * 3],
       meshPos[idx * 3 + 1],
       meshPos[idx * 3 + 2]
-    );
-  };
-
-  const getNormal = (idx) => {
-    return new THREE.Vector3(
-      meshNormal[idx * 3],
-      meshNormal[idx * 3 + 1],
-      meshNormal[idx * 3 + 2]
     );
   };
 
@@ -149,29 +132,81 @@ function process(matMesh, textureMatMesh, listABG, listPtIndex) {
   // // console.log(listPtIndex.length);
   // // console.log("===");
 
-  const renderPos = [];
-
+  const end = bBoth ? vertexCount / 2 : vertexCount;
   // for (let i = 0; i < vertexCount; i += 100) {
-  for (let i = 0; i < vertexCount; ++i) {
+  for (let i = 0; i < end; ++i) {
     const step1 = getPos(listPtIndex[i][0]).multiplyScalar(listABG[i].a);
     const step2 = getPos(listPtIndex[i][1]).multiplyScalar(listABG[i].b);
     const step3 = getPos(listPtIndex[i][2]).multiplyScalar(listABG[i].g);
 
-    texturePos[i * 3] = step1.x + step2.x + step3.x;
-    texturePos[i * 3 + 1] = step1.y + step2.y + step3.y;
-    texturePos[i * 3 + 2] = step1.z + step2.z + step3.z;
+    texMeshPos[i * 3] = step1.x + step2.x + step3.x;
+    texMeshPos[i * 3 + 1] = step1.y + step2.y + step3.y;
+    texMeshPos[i * 3 + 2] = step1.z + step2.z + step3.z;
+
+    if (bBoth) {
+      const idx = i + vertexCount / 2;
+      texMeshPos[idx * 3] = step1.x + step2.x + step3.x;
+      texMeshPos[idx * 3 + 1] = step1.y + step2.y + step3.y;
+      texMeshPos[idx * 3 + 2] = step1.z + step2.z + step3.z;
+    }
   }
 
+  // if (bBoth) {
+  //   const index = textureMatMesh.geometry.index.array;
+  //   const frontVertexCnt = vertexCount / 2;
+  //   const frontIdxCnt = index.length / 2;
+
+  //   for (let i = frontIdxCnt; i < index.length; ++i) {
+  //     const idx = frontVertexCnt + index[i - frontIdxCnt];
+
+  //     if (i % 3 === 1) {
+  //       console.log(index[i + 1], idx);
+  //       index[i + 1] = idx;
+  //     } else if (i % 3 === 2) {
+  //       console.log(index[i - 1], idx);
+  //       index[i - 1] = idx;
+  //     } else {
+  //       console.log(index[i], idx);
+  //       index[i] = idx;
+  //     }
+  //   }
+
+  //   textureMatMesh.geometry.index.needsUpdate = true;
+  // }
+
   // Needs update
+  textureMatMesh.geometry.attributes.position.needsUpdate = true;
+  // textureMatMesh.geometry.attributes.normal.needsUpdate = true;
+  textureMatMesh.geometry.computeBoundingSphere();
   textureMatMesh.geometry.computeFaceNormals();
   textureMatMesh.geometry.computeVertexNormals();
-  textureMatMesh.geometry.attributes.position.needsUpdate = true;
-  textureMatMesh.geometry.attributes.normal.needsUpdate = true;
+
+  // textureMatMesh.geometry.verticesNeedUpdate = true;
+  // textureMatMesh.geometry.elementsNeedUpdate = true;
+  // textureMatMesh.geometry.morphTargetsNeedUpdate = true;
+  // textureMatMesh.geometry.uvsNeedUpdate = true;
+  // textureMatMesh.geometry.normalsNeedUpdate = true;
+  // textureMatMesh.geometry.colorsNeedUpdate = true;
+  // textureMatMesh.geometry.tangentsNeedUpdate = true;
 
   // NOTE: Modules to avoid z-fighting. It works for now but could be a problem in the future.
-  textureMatMesh.material.polygonOffset = true;
-  textureMatMesh.material.polygonOffsetFactor = -1;
-  textureMatMesh.material.needsUpdate = true;
+  // textureMatMesh.material.polygonOffset = true;
+  // textureMatMesh.material.polygonOffsetFactor = -1;
 
-  // console.log(textureMatMesh);
+  // FOR TEST
+  // textureMatMesh.material.uniforms.sGlobal.value = null;
+  // textureMatMesh.material.uniforms.materialBaseColor.value.y = 0;
+  // END FOR TEST
+
+  textureMatMesh.material.needsUpdate = true;
+  matMesh.material.needsUpdate = true;
+
+  // TODO: Remove this
+  // textureMatMesh.visible = false;
+
+  // if (bBoth) console.log(textureMatMesh.geometry);
+  // else textureMatMesh.visible = false;
+  textureMatMesh.visible = true;
+  // matMesh.visible = true;
+  // console.log(matMesh);
 }

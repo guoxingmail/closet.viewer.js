@@ -41,9 +41,7 @@ export async function makeMaterial({
     console.error("colorway Materials missing");
     return;
   }
-  //console.log("colorwayIndex@Material: " + colorwayIndex);
   const currMaterial = colorwayMaterials[colorwayIndex];
-  // console.log(currMaterial);
   if (!currMaterial) {
     console.error("Current material missing");
     return;
@@ -52,12 +50,10 @@ export async function makeMaterial({
   const rFace = getRenderFaceType(currMaterial.renderFace);
   const uniforms = getUniform(version);
 
-  // index is one of texture list. this value only zero now.
+  // NOTE: index is one of texture list. this value only zero now.
   const threeJSMaterial = attachShaderMaterial(drawMode, version);
-  //console.log(threeJSMaterial);
 
   if (zProperty.bDisassembled) {
-    // console.log(matMeshID);
     const listTexture = await loadTextureDisassembly({
       matProperty: matProperty,
       zrestProperty: zProperty,

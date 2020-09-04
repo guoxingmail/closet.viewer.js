@@ -20,9 +20,9 @@ export default class FittingGarment {
   }
 
   // TODO: rootMap is huge. Find out better way.
-  init({bodyVertexPos, bodyVertexIndex, zrest}) {
+  init({ bodyVertexPos, bodyVertexIndex, zrest }) {
     //mapBarycentricPrintTexture
-    console.log({bodyVertexPos, bodyVertexIndex, zrest})
+    console.log({ bodyVertexPos, bodyVertexIndex, zrest })
     this.setBody(bodyVertexPos, bodyVertexIndex);
     this.supplements = new FittingSupplements(zrest);
   }
@@ -69,8 +69,7 @@ export default class FittingGarment {
     const listBarycentricCoord = await this.loadZcrp(zcrpURL);
     // return this.draping({ listBarycentricCoord, mapMatMesh });
   }
-
-
+  
   getGarmentFileName = ({ height, weight}) => {
     return getGarmentFileName(height, weight, this.samplingJSON);
   }
@@ -99,8 +98,6 @@ export default class FittingGarment {
     }
 
     listBarycentricCoord.forEach((garment) => {
-      // const garment = listBarycentricCoord[0];
-      // console.log(garment);
       const listABG = readByteArray("Float", garment.get("baAbgs"));
       const listTriangleIndex = readByteArray(
         "Uint",
@@ -111,6 +108,13 @@ export default class FittingGarment {
         console.warn("MatMeshID info missing");
         return;
       }
+
+      const calculatedCoord = computeBarycentric({
+        listABG: listABG,
+        listTriangleIndex: listTriangleIndex,
+        bodyVertexPos: this.bodyVertexPos,
+        bodyVertexIndex: this.bodyVertexIndex,
+      });
 
       listMatMeshID.forEach((matMeshId) => {
         const matMesh = mapMatMesh.get(matMeshId);
@@ -123,26 +127,26 @@ export default class FittingGarment {
 
           return;
         }
-        // console.log(matMesh);
 
         const index = matMesh.userData.originalIndices;
         const uv = matMesh.userData.originalUv;
         const uv2 = uv;
 
-        const calculatedCoord = computeBarycentric({
-          listABG: listABG,
-          listTriangleIndex: listTriangleIndex,
-          bodyVertexPos: this.bodyVertexPos,
-          bodyVertexIndex: this.bodyVertexIndex,
-        });
+        const sorted = Array.from(index).sort((a, b) => a - b);
+        const minIndex = sorted[0];
+        const maxIndex = sorted[sorted.length - 1];
+        const arrSlicedVertex = calculatedCoord.slice(minIndex * 3, (maxIndex + 1) * 3);
+        const reindex = index.map(x => (x - minIndex));
+
         const bufferGeometry = new THREE.BufferGeometry();
         bufferGeometry.addAttribute(
           "position",
-          new THREE.Float32BufferAttribute(new Float32Array(calculatedCoord), 3)
+          new THREE.Float32BufferAttribute(new Float32Array(arrSlicedVertex), 3)
         );
 
         bufferGeometry.setIndex(
-          new THREE.BufferAttribute(new Uint32Array(index), 1)
+          new THREE.BufferAttribute(new Uint32Array(reindex), 1)
+          //new THREE.BufferAttribute(new Uint32Array(...matMesh.geometry.index.array), 1)
         );
 
         // bufferGeometry.computeBoundingBox();
@@ -158,7 +162,13 @@ export default class FittingGarment {
           new THREE.Float32BufferAttribute(uv2, 2)
         );
 
+        matMesh.geometry.dispose();
         matMesh.geometry = bufferGeometry;
+
+        matMesh.geometry.computeBoundingBox();
+        matMesh.geometry.computeFaceNormals();
+        matMesh.geometry.computeVertexNormals();
+
         matMesh.material.needsUpdate = true;
       });
     });
@@ -168,5 +178,4 @@ export default class FittingGarment {
     // TODO: Rename this module after testing
     await this.supplements.test(supplementsURL, mapMatMesh);
   }
-
 }

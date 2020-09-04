@@ -106,7 +106,7 @@ const buildStyleLines = (
 
 // TODO: Do refactor more!
 // TODO: Is this the appropriate function name??
-const splitMatSpaceToMatMesh = async (
+const splitMatShapeToMatMesh = async (
   matMeshManager,
   listMatMeshIDOnIndexedMesh,
   totalIdxCount,
@@ -121,6 +121,10 @@ const splitMatSpaceToMatMesh = async (
 ) => {
   const zrestVersion = matMeshManager.zProperty.version;
   let indexOffset = zrestVersion > 4 ? 0 : totalIdxCount;
+
+  const combinedVertice = [];
+  // const combinedIndex = [];
+
   for (let m = 0; m < listIdxCount.length; ++m) {
     if (zrestVersion <= 4) {
       indexOffset = indexOffset - listIdxCount[m];
@@ -236,6 +240,7 @@ const splitMatSpaceToMatMesh = async (
       "position",
       new THREE.BufferAttribute(new Float32Array(posAttrib), 3)
     );
+    // combinedVertice.push(...posAttrib);
 
     if (dracoGeometry.useNormal) {
       bufferGeometry.addAttribute(
@@ -263,7 +268,6 @@ const splitMatSpaceToMatMesh = async (
         const index = dracoGeometry.indices[indexOffset + k];
         indexAttrib.push(changeVertexIndex[index]);
       }
-
       indexOffset += indexSize;
     } else {
       for (let j = indexSize / 3 - 1; j >= 0; j--) {
@@ -371,10 +375,35 @@ const splitMatSpaceToMatMesh = async (
     // Should be removed after live
     if (type !== MATMESH_TYPE.AVATAR_MATMESH) {
       threeMesh.userData.originalPos = dracoGeometry.vertices;
-      threeMesh.userData.originalIndices = dracoGeometry.indices;
+      threeMesh.userData.originalIndices = dracoGeometry.indices.slice(
+        indexOffset - indexSize,
+        indexOffset
+      );
+      // threeMesh.userData.originalIndices = dracoGeometry.indices;
       threeMesh.userData.originalUv = dracoGeometry.uvs;
       threeMesh.userData.originalUv2 = dracoGeometry.uv2s;
     }
+
+    // console.log(dracoGeometry.indices);
+    console.log("====");
+    console.log(
+      matMeshID,
+      "offset size: ",
+      indexOffset - indexSize,
+      indexOffset
+      // indexOffset + indexSize
+    );
+    // console.log(
+    //   dracoGeometry.indices.slice(indexOffset, indexSize + indexOffset)
+    // );
+    // threeMesh.userData.originalIndices = dracoGeometry.indices.slice(
+    //   indexOffset,
+    //   indexSize
+    // );
+
+    // console.log("=", indexAttrib.length, dracoGeometry.indices.length);
+    // console.log("=", combinedVertice.length, dracoGeometry.vertices.length);
+    // console.log(combinedVertice);
 
     matMeshManager.matMeshMap.set(matMeshID, threeMesh);
 
@@ -391,6 +420,10 @@ const splitMatSpaceToMatMesh = async (
 
       cameraPos.add(distanceVector);
     }
+
+    // TODO: Fittig ONLY
+    // listMatMeshIDOnIndexedMesh[m].get("uiMatMeshID");
+    // console.log(combinedVertice.length);
   }
 };
 
@@ -477,7 +510,7 @@ export const createMatMesh = async (
 
     const bVisiable = matShape.get("bMatShapeVisible") || false;
 
-    await splitMatSpaceToMatMesh(
+    await splitMatShapeToMatMesh(
       matMeshManager,
       listMatMeshIDOnIndexedMesh,
       totalIndexCount,

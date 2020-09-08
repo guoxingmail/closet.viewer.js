@@ -19,6 +19,7 @@ export default class FittingSkinControllerManager {
     const combinedVertex = [];
     this.mapSCMatMeshID.get(partName).forEach((matMeshId) => {
       const matMesh = this.mapMatMesh.get(matMeshId);
+      if (!matMesh) console.warn(matMeshId);
       const vertex = matMesh.geometry.attributes.position.array;
       // const vertex = matMesh.userData.originalPos;
 

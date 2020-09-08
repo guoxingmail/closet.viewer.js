@@ -130,15 +130,20 @@ export default class FittingGarment {
 
         const index = matMesh.userData.originalIndices;
         const uv = matMesh.userData.originalUv;
-        const uv2 = uv;
+        const uv2 = matMesh.userData.originalUv2;
 
         const sorted = Array.from(index).sort((a, b) => a - b);
         const minIndex = sorted[0];
         const maxIndex = sorted[sorted.length - 1];
+
         const arrSlicedVertex = calculatedCoord.slice(minIndex * 3, (maxIndex + 1) * 3);
         const reindex = index.map(x => (x - minIndex));
 
+        const arrSlicedUV = uv.slice(minIndex * 2, (maxIndex + 1) * 2);
+        const arrSlicedUV2 = uv2.slice(minIndex * 2, (maxIndex + 1) * 2);
+
         const bufferGeometry = new THREE.BufferGeometry();
+        // const bufferGeometry = matMesh.geometry;
         bufferGeometry.addAttribute(
           "position",
           new THREE.Float32BufferAttribute(new Float32Array(arrSlicedVertex), 3)
@@ -149,25 +154,31 @@ export default class FittingGarment {
           //new THREE.BufferAttribute(new Uint32Array(...matMesh.geometry.index.array), 1)
         );
 
-        // bufferGeometry.computeBoundingBox();
+        bufferGeometry.computeBoundingBox();
         bufferGeometry.computeFaceNormals();
         bufferGeometry.computeVertexNormals();
 
         bufferGeometry.addAttribute(
           "uv",
-          new THREE.Float32BufferAttribute(uv, 2)
+          new THREE.Float32BufferAttribute(arrSlicedUV, 2)
         );
-        bufferGeometry.addAttribute(
-          "uv2",
-          new THREE.Float32BufferAttribute(uv2, 2)
-        );
+        // bufferGeometry.addAttribute(
+        //   "uv2",
+        //   new THREE.Float32BufferAttribute(arrSlicedUV2, 2)
+        // );
 
+        // console.log("====")
+        // console.log(matMesh.userData.MATMESH_ID);
+        // console.log(matMesh.geometry);
         matMesh.geometry.dispose();
         matMesh.geometry = bufferGeometry;
+        // console.log(matMesh.geometry);
+        // matMesh.geometry.attributes.uv.needsUpdate = true;
+        // matMesh.geometry.attributes.uv2.needsUpdate = true;
 
-        matMesh.geometry.computeBoundingBox();
-        matMesh.geometry.computeFaceNormals();
-        matMesh.geometry.computeVertexNormals();
+        // matMesh.geometry.computeBoundingBox();
+        // matMesh.geometry.computeFaceNormals();
+        // matMesh.geometry.computeVertexNormals();
 
         matMesh.material.needsUpdate = true;
       });

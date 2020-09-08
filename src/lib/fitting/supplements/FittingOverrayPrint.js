@@ -92,7 +92,7 @@ function process(matMesh, textureMatMesh, listABG, listPtIndex) {
   const vertexCount = textureMatMesh.geometry.attributes.position.count;
   const texMeshPos = textureMatMesh.geometry.attributes.position.array;
   const meshPos = matMesh.geometry.attributes.position.array;
-  const uv = matMesh.geometry.attributes.uv.array;
+  // const uv = matMesh.geometry.attributes.uv.array;
 
   const bBoth = vertexCount / 2 === listABG.length;
   // console.warn(bBoth, vertexCount, listABG.length);
@@ -132,6 +132,8 @@ function process(matMesh, textureMatMesh, listABG, listPtIndex) {
   // // console.log(listPtIndex.length);
   // // console.log("===");
 
+  if (bBoth) console.log("bBoth: " + matMesh.userData.MATMESH_ID);
+
   const end = bBoth ? vertexCount / 2 : vertexCount;
   // for (let i = 0; i < vertexCount; i += 100) {
   for (let i = 0; i < end; ++i) {
@@ -143,41 +145,41 @@ function process(matMesh, textureMatMesh, listABG, listPtIndex) {
     texMeshPos[i * 3 + 1] = step1.y + step2.y + step3.y;
     texMeshPos[i * 3 + 2] = step1.z + step2.z + step3.z;
 
-    if (bBoth) {
-      const idx = i + vertexCount / 2;
-      texMeshPos[idx * 3] = step1.x + step2.x + step3.x;
-      texMeshPos[idx * 3 + 1] = step1.y + step2.y + step3.y;
-      texMeshPos[idx * 3 + 2] = step1.z + step2.z + step3.z;
-    }
+    // if (bBoth) {
+    //   const idx = i + vertexCount / 2;
+    //   texMeshPos[idx * 3] = step1.x + step2.x + step3.x;
+    //   texMeshPos[idx * 3 + 1] = step1.y + step2.y + step3.y;
+    //   texMeshPos[idx * 3 + 2] = step1.z + step2.z + step3.z;
+    // }
   }
 
-  // if (bBoth) {
-  //   const index = textureMatMesh.geometry.index.array;
-  //   const frontVertexCnt = vertexCount / 2;
-  //   const frontIdxCnt = index.length / 2;
+  if (bBoth) {
+    const index = textureMatMesh.geometry.index.array;
+    const frontVertexCnt = vertexCount / 2;
+    const frontIdxCnt = index.length / 2;
 
-  //   for (let i = frontIdxCnt; i < index.length; ++i) {
-  //     const idx = frontVertexCnt + index[i - frontIdxCnt];
+    for (let i = frontIdxCnt; i < index.length; ++i) {
+      const idx = frontVertexCnt + index[i - frontIdxCnt];
 
-  //     if (i % 3 === 1) {
-  //       console.log(index[i + 1], idx);
-  //       index[i + 1] = idx;
-  //     } else if (i % 3 === 2) {
-  //       console.log(index[i - 1], idx);
-  //       index[i - 1] = idx;
-  //     } else {
-  //       console.log(index[i], idx);
-  //       index[i] = idx;
-  //     }
-  //   }
+      if (i % 3 === 1) {
+        // console.log(index[i + 1], idx);
+        index[i + 1] = idx;
+      } else if (i % 3 === 2) {
+        // console.log(index[i - 1], idx);
+        index[i - 1] = idx;
+      } else {
+        // console.log(index[i], idx);
+        index[i] = idx;
+      }
+    }
 
-  //   textureMatMesh.geometry.index.needsUpdate = true;
-  // }
+    textureMatMesh.geometry.index.needsUpdate = true;
+  }
 
   // Needs update
   textureMatMesh.geometry.attributes.position.needsUpdate = true;
   // textureMatMesh.geometry.attributes.normal.needsUpdate = true;
-  textureMatMesh.geometry.computeBoundingSphere();
+  // textureMatMesh.geometry.computeBoundingSphere();
   textureMatMesh.geometry.computeFaceNormals();
   textureMatMesh.geometry.computeVertexNormals();
 

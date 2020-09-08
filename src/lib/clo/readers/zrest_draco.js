@@ -385,14 +385,14 @@ const splitMatShapeToMatMesh = async (
     }
 
     // console.log(dracoGeometry.indices);
-    console.log("====");
-    console.log(
-      matMeshID,
-      "offset size: ",
-      indexOffset - indexSize,
-      indexOffset
-      // indexOffset + indexSize
-    );
+    // console.log("====");
+    // console.log(
+    //   matMeshID,
+    //   "offset size: ",
+    //   indexOffset - indexSize,
+    //   indexOffset
+    //   // indexOffset + indexSize
+    // );
     // console.log(
     //   dracoGeometry.indices.slice(indexOffset, indexSize + indexOffset)
     // );

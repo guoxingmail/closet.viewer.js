@@ -186,7 +186,6 @@ export default class Fitting {
 
   async drapingUsingZcrpURL({ zcrpURL }) {
     await this.garment.loadZcrp(zcrpURL);
-    // { listBarycentricCoord, mapMatMesh }
     const listBarycentricCoord = this.garment.listBarycentricCoord;
     const mapMatMesh = this.zrest.matMeshMap;
     this.garment.draping({ listBarycentricCoord, mapMatMesh });

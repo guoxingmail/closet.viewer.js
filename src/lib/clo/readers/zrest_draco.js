@@ -1,6 +1,5 @@
-import { readByteArray } from "@/lib/clo/file/KeyValueMapReader";
-import { unZip } from "@/lib/clo/readers/FileLoader";
 import * as THREE from "@/lib/threejs/three";
+import { readByteArray } from "@/lib/clo/file/KeyValueMapReader";
 import { makeMaterial } from "@/lib/clo/readers/zrest_material";
 import { MATMESH_TYPE } from "@/lib/clo/readers/Predefined";
 
@@ -540,3 +539,7 @@ export const createMatMesh = async (
 
   await Promise.all(newListMatShape);
 };
+
+function setOriginalInfo() {
+
+}

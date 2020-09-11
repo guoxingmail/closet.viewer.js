@@ -1,7 +1,8 @@
 import * as THREE from "@/lib/threejs/three";
 import { readByteArray } from "@/lib/clo/file/KeyValueMapReader";
 
-export function processOverrayPrint(listPrintTextureBarycentric, mapMatMesh) {
+export function processOverlayPrint(listPrintTextureBarycentric, mapMatMesh) {
+  console.log("processOverlayPrint");
   if (!listPrintTextureBarycentric || !mapMatMesh) return;
 
   // TODO: Test only
@@ -36,55 +37,55 @@ export function processOverrayPrint(listPrintTextureBarycentric, mapMatMesh) {
     // textureMatMesh.visible = true;
   });
 }
-
-function readData(listPrintTextureBarycentric) {
-  const listPrintTexture = [];
-
-  listPrintTextureBarycentric.forEach((element) => {
-    // TODO: Ask to change the data type from byte to int
-    const matMeshID = parseInt(
-      readByteArray("String", element.get("patternMatMeshID"))
-    );
-    const printTextureMatMeshID = parseInt(
-      readByteArray("String", element.get("printTextureMatMeshID"))
-    );
-    const listIndex = readByteArray("Uint", element.get("baIndices"));
-    const loadedABG = readByteArray("Float", element.get("baAbgs"));
-    const loadedPtIndex = readByteArray("Uint", element.get("baPtIndices"));
-
-    const listABG = [];
-    const listPtIndex = [];
-
-    // Parse data
-    for (let i = 0; i < listIndex.length; ++i) {
-      const idx = i * 3;
-
-      const ABG = new Object({
-        a: loadedABG[idx],
-        b: loadedABG[idx + 1],
-        g: loadedABG[idx + 2],
-      });
-      listABG.push(ABG);
-
-      listPtIndex.push([
-        loadedPtIndex[idx],
-        loadedPtIndex[idx + 1],
-        loadedPtIndex[idx + 2],
-      ]);
-    }
-
-    const obj = new Object();
-    obj["matMeshID"] = matMeshID;
-    obj["printTextureMatMeshID"] = printTextureMatMeshID;
-    obj["listABG"] = listABG;
-    obj["listIndex"] = listIndex;
-    obj["listPtIndex"] = listPtIndex;
-
-    listPrintTexture.push(obj);
-  });
-
-  return listPrintTexture;
-}
+//
+// function readData(listPrintTextureBarycentric) {
+//   const listPrintTexture = [];
+//
+//   listPrintTextureBarycentric.forEach((element) => {
+//     // TODO: Ask to change the data type from byte to int
+//     const matMeshID = parseInt(
+//       readByteArray("String", element.get("patternMatMeshID"))
+//     );
+//     const printTextureMatMeshID = parseInt(
+//       readByteArray("String", element.get("printTextureMatMeshID"))
+//     );
+//     const listIndex = readByteArray("Uint", element.get("baIndices"));
+//     const loadedABG = readByteArray("Float", element.get("baAbgs"));
+//     const loadedPtIndex = readByteArray("Uint", element.get("baPtIndices"));
+//
+//     const listABG = [];
+//     const listPtIndex = [];
+//
+//     // Parse data
+//     for (let i = 0; i < listIndex.length; ++i) {
+//       const idx = i * 3;
+//
+//       const ABG = new Object({
+//         a: loadedABG[idx],
+//         b: loadedABG[idx + 1],
+//         g: loadedABG[idx + 2],
+//       });
+//       listABG.push(ABG);
+//
+//       listPtIndex.push([
+//         loadedPtIndex[idx],
+//         loadedPtIndex[idx + 1],
+//         loadedPtIndex[idx + 2],
+//       ]);
+//     }
+//
+//     const obj = new Object();
+//     obj["matMeshID"] = matMeshID;
+//     obj["printTextureMatMeshID"] = printTextureMatMeshID;
+//     obj["listABG"] = listABG;
+//     obj["listIndex"] = listIndex;
+//     obj["listPtIndex"] = listPtIndex;
+//
+//     listPrintTexture.push(obj);
+//   });
+//
+//   return listPrintTexture;
+// }
 
 function process(matMesh, textureMatMesh, listABG, listPtIndex) {
   if (!matMesh) return;
@@ -95,7 +96,6 @@ function process(matMesh, textureMatMesh, listABG, listPtIndex) {
   // const uv = matMesh.geometry.attributes.uv.array;
 
   const bBoth = vertexCount / 2 === listABG.length;
-  // console.warn(bBoth, vertexCount, listABG.length);
 
   // if (vertexCount !== listABG.length || vertexCount !== listPtIndex.length) {
   //   console.log("Warning: Invalid data");
@@ -135,8 +135,11 @@ function process(matMesh, textureMatMesh, listABG, listPtIndex) {
   if (bBoth) console.log("bBoth: " + matMesh.userData.MATMESH_ID);
 
   const end = bBoth ? vertexCount / 2 : vertexCount;
+  console.log("end: " + end);
+
   // for (let i = 0; i < vertexCount; i += 100) {
   for (let i = 0; i < end; ++i) {
+    // console.log(i, listPtIndex[i]);
     const step1 = getPos(listPtIndex[i][0]).multiplyScalar(listABG[i].a);
     const step2 = getPos(listPtIndex[i][1]).multiplyScalar(listABG[i].b);
     const step3 = getPos(listPtIndex[i][2]).multiplyScalar(listABG[i].g);
@@ -208,7 +211,112 @@ function process(matMesh, textureMatMesh, listABG, listPtIndex) {
 
   // if (bBoth) console.log(textureMatMesh.geometry);
   // else textureMatMesh.visible = false;
-  textureMatMesh.visible = true;
+  // textureMatMesh.visible = true;
   // matMesh.visible = true;
-  // console.log(matMesh);
+  console.log(matMesh);
+}
+
+
+export function processPuckering(listBaryPuckering, mapMatMesh) {
+  console.log("processPuckering");
+  if (!listBaryPuckering || !mapMatMesh) return;
+
+  // TODO: Test only
+  // mapMatMesh.forEach((matMesh) => (matMesh.visible = false));
+
+  console.log(listBaryPuckering);
+  const listPuckering = readData(listBaryPuckering, "uiPuckeringMatMeshID");
+  console.log(listPuckering);
+
+  listPuckering.forEach((obj) => {
+    const matMeshID = obj.matMeshID;
+    const matMesh = mapMatMesh.get(matMeshID);
+    const textureMatMesh = mapMatMesh.get(obj.printTextureMatMeshID);
+    // console.log(textureMatMesh);
+
+    process(matMesh, textureMatMesh, obj.listABG, obj.listPtIndex);
+
+    // console.log(textureMatMesh);
+    // textureMatMesh.visible = true;
+  });
+}
+
+export function processStitch(listBaryStitch, mapMatMesh) {
+  console.log("processStitch");
+  if (!listBaryStitch || !mapMatMesh) return;
+
+  // TODO: Test only
+  // mapMatMesh.forEach((matMesh) => (matMesh.visible = false));
+
+  console.log(listBaryStitch);
+  const listPuckering = readData(listBaryStitch, "uiStitchMatMeshID");
+  console.log(listPuckering);
+
+  listPuckering.forEach((obj) => {
+    // const matMesh = mapMatMesh.get(obj.matMeshID);
+    // const textureMatMesh = mapMatMesh.get(obj.printTextureMatMeshID);
+
+    const textureMatMesh = mapMatMesh.get(obj.matMeshID);
+    const matMesh = mapMatMesh.get(obj.printTextureMatMeshID);
+
+
+    process(matMesh, textureMatMesh, obj.listABG, obj.listPtIndex);
+
+    // console.log(textureMatMesh);
+    // textureMatMesh.visible = true;
+  });
+}
+
+function processCommon(listBarycentricElement, dataFieldName, objFieldName, mapMatMesh) {
+  const listElement = readData(listBarycentricElement, dataFieldName);
+  listElement.forEach((obj) => {
+    const parentMatMesh = mapMatMesh.get(obj.matMeshID);
+    const elementMatMesh = mapMatMesh.get(obj[objFieldName]);
+  })
+}
+
+function readData(listBaryPuckering, dataFieldName) {
+  const retList = [];
+
+  listBaryPuckering.forEach((element) => {
+    const parentMatMeshID = element.get("uiPatternMatMeshID");
+    const elementMatMeshID = element.get(dataFieldName);
+    const listIndex = readByteArray("Uint", element.get("baIndices"));
+    const loadedABG = readByteArray("Float", element.get("baAbgs"));
+    const loadedPtIndex = readByteArray("Uint", element.get("baPtIndices"));
+
+    const listABG = [];
+    const listPtIndex = [];
+
+    // Parse data
+    for (let i = 0; i < listIndex.length; ++i) {
+      const idx = i * 3;
+
+      const ABG = new Object({
+        a: loadedABG[idx],
+        b: loadedABG[idx + 1],
+        g: loadedABG[idx + 2],
+      });
+      listABG.push(ABG);
+
+      listPtIndex.push([
+        loadedPtIndex[idx],
+        loadedPtIndex[idx + 1],
+        loadedPtIndex[idx + 2],
+
+
+      ]);
+    }
+
+    const obj = new Object();
+    obj["parentMatMeshID"] = parentMatMeshID;
+    obj["elementMatMeshID"] = elementMatMeshID;
+    obj["listABG"] = listABG;
+    obj["listIndex"] = listIndex;
+    obj["listPtIndex"] = listPtIndex;
+
+    retList.push(obj);
+  });
+
+  return retList;
 }

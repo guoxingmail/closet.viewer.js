@@ -22,7 +22,7 @@ export default class FittingGarment {
   // TODO: rootMap is huge. Find out better way.
   init({ bodyVertexPos, bodyVertexIndex, zrest }) {
     //mapBarycentricPrintTexture
-    console.log({ bodyVertexPos, bodyVertexIndex, zrest })
+    // console.log({ bodyVertexPos, bodyVertexIndex, zrest })
     this.setBody(bodyVertexPos, bodyVertexIndex);
     this.supplements = new FittingSupplements(zrest);
   }
@@ -65,7 +65,7 @@ export default class FittingGarment {
     return this.listBarycentricCoord;
   }
 
-  async loadDrapingDataFromURL({ zcrpURL, mapMatMesh }) {
+  async loadDrapingDataFromURL({ zcrpURL }) {
     const listBarycentricCoord = await this.loadZcrp(zcrpURL);
     // return this.draping({ listBarycentricCoord, mapMatMesh });
   }
@@ -118,6 +118,8 @@ export default class FittingGarment {
 
       listMatMeshID.forEach((matMeshId) => {
         const matMesh = mapMatMesh.get(matMeshId);
+        // console.log(matMeshId, matMesh.userData.TYPE);
+
         if (!matMesh) {
           console.error(
             "matMesh(" + matMeshId + ") is not exist on init garment"
@@ -127,6 +129,9 @@ export default class FittingGarment {
 
           return;
         }
+
+        // TODO: Take a deep look
+        if (matMesh.userData.TYPE === 4) return; // NORMAL_MATMESH
 
         const index = matMesh.userData.originalIndices;
         const uv = matMesh.userData.originalUv;
@@ -142,15 +147,23 @@ export default class FittingGarment {
         const arrSlicedUV = uv.slice(minIndex * 2, (maxIndex + 1) * 2);
         const arrSlicedUV2 = uv2.slice(minIndex * 2, (maxIndex + 1) * 2);
 
+        const taPos = new Float32Array(arrSlicedVertex);
+        const taIndex = new Uint32Array(reindex);
+        const taUV = new Float32Array(arrSlicedUV);
+
         const bufferGeometry = new THREE.BufferGeometry();
         // const bufferGeometry = matMesh.geometry;
+
         bufferGeometry.addAttribute(
           "position",
-          new THREE.Float32BufferAttribute(new Float32Array(arrSlicedVertex), 3)
+          new THREE.BufferAttribute(taPos, 3)
+          // new THREE.Float32BufferAttribute(new Float32Array(arrSlicedVertex), 3)
+          // taPos
         );
 
         bufferGeometry.setIndex(
-          new THREE.BufferAttribute(new Uint32Array(reindex), 1)
+          new THREE.BufferAttribute(taIndex, 1)
+          // new THREE.BufferAttribute(new Uint32Array(reindex), 1)
           //new THREE.BufferAttribute(new Uint32Array(...matMesh.geometry.index.array), 1)
         );
 
@@ -160,16 +173,8 @@ export default class FittingGarment {
 
         bufferGeometry.addAttribute(
           "uv",
-          new THREE.Float32BufferAttribute(arrSlicedUV, 2)
+          new THREE.BufferAttribute(taUV, 2)
         );
-        // bufferGeometry.addAttribute(
-        //   "uv2",
-        //   new THREE.Float32BufferAttribute(arrSlicedUV2, 2)
-        // );
-
-        // console.log("====")
-        // console.log(matMesh.userData.MATMESH_ID);
-        // console.log(matMesh.geometry);
         matMesh.geometry.dispose();
         matMesh.geometry = bufferGeometry;
         // console.log(matMesh.geometry);

@@ -97,8 +97,10 @@ export default class ClosetViewer {
     // create webgl renderer
     this.renderer = new THREE.WebGLRenderer({
       antialias: true,
-      preserveDrawingBuffer: true,
+      // preserveDrawingBuffer: true,
       alpha: true,
+      stencil: false,
+      powerPreference: "high-performance",
     });
     this.renderer.setClearAlpha(0);
     this.renderer.setPixelRatio(window.devicePixelRatio);
@@ -256,17 +258,17 @@ export default class ClosetViewer {
       });
       console.log("-- resizeAvatarWithAcc");
 
-      // await this.fitting.loadGarmentData({
-      //   garmentURL:
-      //     "https://files.clo-set.com/public/fitting/6589407053fb4b88b844f191e3566a4b/1/3/0/garment.zrest",
-      //   samplingURL:
-      //     "https://files.clo-set.com/public/fitting/6589407053fb4b88b844f191e3566a4b/1/3/sampling.json",
-      // });
+      await this.fitting.loadGarmentData({
+        garmentURL:
+          "https://files.clo-set.com/public/fitting/6589407053fb4b88b844f191e3566a4b/1/3/0/garment.zrest",
+        samplingURL:
+          "https://files.clo-set.com/public/fitting/6589407053fb4b88b844f191e3566a4b/1/3/sampling.json",
+      });
 
-      // await this.fitting.drapingUsingZcrpURL({
-      //   zcrpURL:
-      //     "https://files.clo-set.com/public/fitting/6589407053fb4b88b844f191e3566a4b/1/3/0/P0_130_44.zcrp",
-      // });
+      await this.fitting.drapingUsingZcrpURL({
+        zcrpURL:
+          "https://files.clo-set.com/public/fitting/6589407053fb4b88b844f191e3566a4b/1/3/0/P0_130_44.zcrp",
+      });
     };
 
     const test = async () => {
@@ -331,11 +333,12 @@ export default class ClosetViewer {
       console.log("++ loadResizableAvatar");
       await this.fitting.loadResizableAvatar({
         avatarURL:
-          "https://files.clo-set.com/public/fitting/avatar/0/Thomas.zrest",
+          // "https://files.clo-set.com/public/fitting/avatar/1/Feifei.zrest",
+        "https://files.clo-set.com/public/fitting/avatar/0/Henry.zrest",
         sizingURL:
           "https://files.clo-set.com/public/fitting/avatar/0/Sizing.zip",
         accURL:
-          "https://files.clo-set.com/public/fitting/avatar/0/Thomas.Acc.map",
+          "https://files.clo-set.com/public/fitting/avatar/0/Henry.Acc.map",
       });
       console.log("-- loadResizableAvatar");
 
@@ -356,15 +359,19 @@ export default class ClosetViewer {
 
       await this.fitting.drapingUsingZcrpURL({
         zcrpURL:
-          "./trims/P0_177_83.zcrp",
+        "./trims/P0_177_83.zcrp",
       });
+
+      const supplementsURL = "./trims/supplements.map"
+      await this.fitting.resizingSupplementsUsingURL(supplementsURL);
     };
 
     // notWorking();
     // correctlyWorking();
+    trims();
+
     // test();
 
-    trims();
     this.updateRenderer(1);
   }
 
@@ -638,7 +645,7 @@ export default class ClosetViewer {
       }
     };
 
-    const error = function (xhr) {};
+    const error = function (xhr) { };
 
     const loaded = async (object, loadedCamera, data) => {
       this.annotation.init({
@@ -811,32 +818,13 @@ export default class ClosetViewer {
       await this.loadZrestUrlWithParameters(
         zrestItem,
         onProgress,
-        () => {},
+        () => { },
         colorwayIndex,
         true
       );
     } else {
       await this.loadSeparatedZrest(zrestItem, onProgress, colorwayIndex);
     }
-  };
-
-  s(type) {
-    this.zrest.matMeshMap.forEach((matMesh) => {
-      if (matMesh.userData.TYPE == type) console.log(matMesh);
-    });
-  }
-
-  // NOTE: This is test only
-  loadZrestTest = (testNo) => {
-    const testData = getTestData(testNo);
-    console.log(testData);
-
-    const json = Object();
-    json.rest = [testData.testRest];
-    json.imgs = testData.testImgs;
-    json.dracos = testData.testDraco;
-
-    this.loadSeparatedZrest(json);
   };
 
   async changeColorway(colorwayIdx) {

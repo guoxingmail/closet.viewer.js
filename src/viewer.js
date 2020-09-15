@@ -344,8 +344,8 @@ export default class ClosetViewer {
 
       console.log("++ resizeAvatarWithAcc");
       await this.fitting.resizeAvatarWithAcc({
-        height: 177,
-        weight: 83,
+        height: 178,
+        weight: 104,
         bodyShape: 0,
       });
       console.log("-- resizeAvatarWithAcc");
@@ -359,7 +359,8 @@ export default class ClosetViewer {
 
       await this.fitting.drapingUsingZcrpURL({
         zcrpURL:
-        "./trims/P0_177_83.zcrp",
+        "./trims/P0_178_104.zcrp",
+        // "./trims/P0_176_62.zcrp",
       });
 
       const supplementsURL = "./trims/supplements.map"

@@ -1,4 +1,8 @@
-import { processOverlayPrint, processPuckering, processStitch } from "@/lib/fitting/supplements/FittingOverrayPrint";
+import {
+  processOverlayPrint,
+  processPuckering,
+  processStitch,
+} from "@/lib/fitting/supplements/FittingOverrayPrint";
 import { processTrims } from "@/lib/fitting/supplements/FittingTrims";
 import { loadFile, unZip } from "@/lib/clo/readers/FileLoader";
 import { readMap } from "@/lib/clo/file/KeyValueMapReader";
@@ -24,7 +28,7 @@ export default class FittingSupplements {
     console.log("FittingSupplements load complete");
   }
 
-  async test(supplementsFile, mapMatMesh) {
+  async test(supplementsFile, mapMatMesh, mapTransMatrix) {
     const rootMap = await this.load(supplementsFile);
 
     console.log("rootMap");
@@ -53,7 +57,8 @@ export default class FittingSupplements {
     // console.log(this.mapPrintTexture);
 
     const listBarycentricTrim = rootMap.get("listBarycentricTrim");
-    if (listBarycentricTrim) processTrims(listBarycentricTrim, mapMatMesh);
+    if (listBarycentricTrim)
+      processTrims(listBarycentricTrim, mapMatMesh, mapTransMatrix);
   }
 
   async load(supplementsFile) {

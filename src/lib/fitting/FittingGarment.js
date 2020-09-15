@@ -190,8 +190,8 @@ export default class FittingGarment {
     });
   }
 
-  async resizingSupplement(supplementsURL, mapMatMesh) {
+  async resizingSupplement(supplementsURL, mapMatMesh, mapTransMatrix) {
     // TODO: Rename this module after testing
-    await this.supplements.test(supplementsURL, mapMatMesh);
+    await this.supplements.test(supplementsURL, mapMatMesh, mapTransMatrix);
   }
 }

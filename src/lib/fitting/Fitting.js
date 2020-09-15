@@ -193,6 +193,67 @@ export default class Fitting {
 
   async resizingSupplementsUsingURL(supplementsURL) {
     const mapMatMesh = this.zrest.matMeshMap;
-    await this.garment.resizingSupplement(supplementsURL, mapMatMesh);
+    const mapTransMatrix = this.buildMapTransform3DMatrix(
+      this.zrest.zProperty.rootMap
+    );
+    console.log(mapTransMatrix);
+    // console.log(this.zrest.zProperty.rootMap);
+    await this.garment.resizingSupplement(
+      supplementsURL,
+      mapMatMesh,
+      mapTransMatrix
+    );
+  }
+
+  buildMapTransform3DMatrix(rootMap) {
+    console.log(rootMap);
+    const mapTransMatrix = new Map();
+    const listChildrenTransformer3D = rootMap
+      .get("mapGeometry")
+      .get("listChildrenTransformer3D");
+    const idenMatrix = new THREE.Matrix4().identity();
+
+    const parse = (listTF3D, parentMatrix) => {
+      const multiMatrix = parentMatrix || idenMatrix;
+      // console.log("multiMatrix: ");
+      // console.log(multiMatrix);
+
+      console.log(listTF3D);
+
+      listTF3D.forEach((tf) => {
+        const childListTF3D = tf.get("listChildrenTransformer3D");
+        const LtoW = this.convertCLOMatrixToThree(tf.get("m4LtoW")); //.multiply(multiMatrix);
+        const m4Matrix = this.convertCLOMatrixToThree(tf.get("m4Matrix"));
+        // console.log("LtoW");
+        console.log(LtoW);
+        const transID = tf.get("uiID");
+        if (childListTF3D) {
+          parse(childListTF3D, LtoW);
+        }
+        mapTransMatrix.set(transID, { LtoW: LtoW, matrix: m4Matrix });
+      });
+    };
+
+    parse(listChildrenTransformer3D);
+    return mapTransMatrix;
+  }
+
+  getMatrix4(matrixFromCLO) {
+    return new THREE.Matrix4().fromArray(Object.values(matrixFromCLO));
+  }
+
+  convertCLOMatrixToThree(matrix) {
+    return this.getMatrix4(matrix);
+
+    const m = matrix;
+
+    // prettier-ignore
+    const result = new THREE.Matrix4().set(
+      m.a00, m.a01, m.a02, m.a03,
+      m.a10, m.a11, m.a12, m.a13,
+      m.a20, m.a21, m.a22, m.a23,
+      m.a30, m.a31, m.a32, m.a33);
+
+    return result;
   }
 }

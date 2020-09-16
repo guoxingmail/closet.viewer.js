@@ -58,7 +58,7 @@ export default class FittingSupplements {
 
     const listBarycentricTrim = rootMap.get("listBarycentricTrim");
     if (listBarycentricTrim)
-      processTrims(listBarycentricTrim, mapMatMesh, mapTransMatrix);
+      return processTrims(listBarycentricTrim, mapMatMesh, mapTransMatrix); // NOTE: RETURN FOR TEST ONLY
   }
 
   async load(supplementsFile) {

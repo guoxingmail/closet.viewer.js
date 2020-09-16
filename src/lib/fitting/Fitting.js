@@ -196,13 +196,12 @@ export default class Fitting {
     const mapTransMatrix = this.buildMapTransform3DMatrix(
       this.zrest.zProperty.rootMap
     );
-    console.log(mapTransMatrix);
-    // console.log(this.zrest.zProperty.rootMap);
-    await this.garment.resizingSupplement(
+    const testOnly = await this.garment.resizingSupplement(
       supplementsURL,
       mapMatMesh,
       mapTransMatrix
     );
+    this.zrest.scene.add(testOnly);
   }
 
   buildMapTransform3DMatrix(rootMap) {

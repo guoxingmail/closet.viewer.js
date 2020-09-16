@@ -2,11 +2,12 @@ import * as THREE from "@/lib/threejs/three";
 
 export function processTrims(listBarycentricTrim, mapMatMesh, mapTransMatrix) {
   console.log("processTrims");
-
   mapMatMesh.forEach((m) => (m.visible = false));
 
   const listTrims = readData(listBarycentricTrim);
   console.log(listTrims);
+
+  const tempObject3D = new THREE.Object3D();
 
   listTrims.forEach((obj) => {
     const arrTrimMeshID = obj.arrTrimMeshID;
@@ -57,7 +58,14 @@ export function processTrims(listBarycentricTrim, mapMatMesh, mapTransMatrix) {
     // console.log(ltow);
     // console.log(parentWtoL.multiply(ltow));
     // console.log(matMesh.parent.localToWorld());
+
+    const t = buildTriangle(parentMatMesh, triangleIndex, triangleABC);
+    console.log(t);
+    tempObject3D.add(t);
   });
+
+  // NOTE: TEST ONLY
+  return tempObject3D;
 }
 
 function getMatrix4(matrixFromCLO) {
@@ -96,6 +104,53 @@ function readData(listBarycentricTrim) {
   return listTrims;
 }
 
+// NOTE: Test only
+function buildTriangle(matMesh, triangleIndex, triangleABC) {
+  const arrPos = matMesh.geometry.attributes.position.array;
+  const arrIdx = matMesh.geometry.index.array;
+
+  const getTriangle = (triangleIndex) => {
+    return [
+      arrIdx[triangleIndex * 3],
+      arrIdx[triangleIndex * 3 + 1],
+      arrIdx[triangleIndex * 3 + 2],
+    ];
+  };
+
+  const getPoints = (arrPointIdx) => {
+    const arrVector3 = [];
+    arrPointIdx.forEach((pointIdx) => {
+      const v3Point = new THREE.Vector3(
+        arrPos[pointIdx * 3],
+        arrPos[pointIdx * 3 + 1],
+        arrPos[pointIdx * 3 + 2]
+      );
+      arrVector3.push(v3Point);
+    });
+
+    return arrVector3;
+  };
+
+  // console.log(getTriangle(triangleIndex));
+  // console.log(getPoints(getTriangle(triangleIndex)));
+
+  const p = getPoints(getTriangle(triangleIndex));
+  const ps = [];
+  for (let i = 0; i < p.length; ++i) {
+    ps.push(p[i].x, p[i].y, p[i].z);
+  }
+  console.log(ps);
+
+  const bufferGeometry = new THREE.BufferGeometry();
+  bufferGeometry.addAttribute(
+    "position",
+    new THREE.Float32BufferAttribute(new Float32Array(ps), 3)
+  );
+  const material = new THREE.MeshPhongMaterial({});
+  const threeMesh = new THREE.Mesh(bufferGeometry, material);
+  return threeMesh;
+}
+
 function getTriangleWorldToLocal(matMesh, triangleIndex, triangleABC) {
   const arrPos = matMesh.geometry.attributes.position.array;
   const arrIdx = matMesh.geometry.index.array;
@@ -126,6 +181,8 @@ function getTriangleWorldToLocal(matMesh, triangleIndex, triangleABC) {
   // console.log(getPoints(getTriangle(triangleIndex)));
 
   const p = getPoints(getTriangle(triangleIndex));
+  console.log("p");
+  console.log(p);
   const axisX = new THREE.Vector3().subVectors(p[1], p[0]).normalize();
   const axisY = new THREE.Vector3().subVectors(p[2], p[0]);
   const axisYRestCompute = new THREE.Vector3()
@@ -135,16 +192,12 @@ function getTriangleWorldToLocal(matMesh, triangleIndex, triangleABC) {
   const axisZ = new THREE.Vector3().crossVectors(axisX, axisY).normalize();
 
   const ltow = new THREE.Matrix4().makeBasis(axisX, axisY, axisZ);
-  console.log("makeBasic");
-  console.log(ltow);
   const trans = new THREE.Vector3()
     .addScaledVector(p[0], triangleABC.x)
     .addScaledVector(p[1], triangleABC.y)
     .addScaledVector(p[2], triangleABC.z);
-  console.log(trans);
   ltow.setPosition(trans);
 
-  console.log(ltow);
   return getInvertRotTrans(ltow);
 }
 

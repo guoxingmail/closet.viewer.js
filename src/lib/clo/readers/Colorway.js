@@ -1,5 +1,7 @@
 import { makeMaterial } from "./zrest_material";
 import { setTexturePropertyDisassembly } from "./TextureManager";
+import { MATMESH_TYPE } from "@/lib/clo/readers/predefined";
+
 export default class Colorway {
   constructor({ zProperty: zProperty, matInfoMap: matInfoMap, clearFunc: clearFunc }) {
     this.zProperty = zProperty;
@@ -54,6 +56,10 @@ export default class Colorway {
       const prevMaterial = matMesh.material;
       if (!prevMaterial) continue;
 
+      // NOTE: Avatar has not colorway
+      const type = matMesh.userData.TYPE;
+      if (MATMESH_TYPE.isAvatar(type)) continue;
+
       const bPrevUseSeamPuckeringMap = prevMaterial.uniforms.bUseSeamPuckeringNormal !== undefined ? prevMaterial.uniforms.bUseSeamPuckeringNormal.value : false;
       const id = matMesh.userData.MATMESH_ID;
       const matInfo = this.matInfoMap.get(id);
@@ -79,7 +85,6 @@ export default class Colorway {
         matMeshID: matMeshId,
         bUseSeamPuckeringNormalMap: bPrevUseSeamPuckeringMap
       });
-
       matMesh.material = material;
     }
 

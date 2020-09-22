@@ -201,7 +201,7 @@ export default class Fitting {
       mapMatMesh,
       mapTransMatrix
     );
-    this.zrest.scene.add(testOnly);
+    // this.zrest.scene.add(testOnly);
   }
 
   buildMapTransform3DMatrix(rootMap) {
@@ -214,18 +214,15 @@ export default class Fitting {
 
     const parse = (listTF3D, parentMatrix) => {
       const multiMatrix = parentMatrix || idenMatrix;
-      // console.log("multiMatrix: ");
-      // console.log(multiMatrix);
-
-      console.log(listTF3D);
 
       listTF3D.forEach((tf) => {
         const childListTF3D = tf.get("listChildrenTransformer3D");
-        const LtoW = this.convertCLOMatrixToThree(tf.get("m4LtoW")); //.multiply(multiMatrix);
+        const LtoW = this.convertCLOMatrixToThree(tf.get("m4LtoW")).multiply(
+          multiMatrix
+        );
         const m4Matrix = this.convertCLOMatrixToThree(tf.get("m4Matrix"));
-        // console.log("LtoW");
-        console.log(LtoW);
         const transID = tf.get("uiID");
+
         if (childListTF3D) {
           parse(childListTF3D, LtoW);
         }
@@ -234,6 +231,7 @@ export default class Fitting {
     };
 
     parse(listChildrenTransformer3D);
+
     return mapTransMatrix;
   }
 

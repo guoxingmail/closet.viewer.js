@@ -1,25 +1,16 @@
 import * as THREE from "@/lib/threejs/three";
 
 export function processTrims(listBarycentricTrim, mapMatMesh, mapTransMatrix) {
-  console.log("processTrims");
-  mapMatMesh.forEach((m) => (m.visible = false));
-
   const listTrims = readData(listBarycentricTrim);
-  console.log(listTrims);
 
   const tempObject3D = new THREE.Object3D();
 
   listTrims.forEach((obj) => {
     const arrTrimMeshID = obj.arrTrimMeshID;
-    const trimTF3DID = obj.trimTF3DID;
-
-    // TODO: It's temporary
-    const matMesh = mapMatMesh.get(arrTrimMeshID[0]);
-    // console.log(mapTransMatrix.get(trimTF3DID));
-    const parentMatMesh = mapMatMesh.get(obj.patternMatMeshID);
+    const gluedMatMesh = mapMatMesh.get(obj.patternMatMeshID);
     const triangleIndex = obj.gluedPatternTriangleIndex;
     const triangleABC = obj.gluedPatternTriangleABC;
-    const m4LocalMatrixOnGluedPatternTriangle = getMatrix4(
+    const localMatrixOnGluedPatternTriangle = getMatrix4(
       obj.m4LocalMatrixOnGluedPatternTriangle
     );
     console.log("m4");
@@ -28,40 +19,29 @@ export function processTrims(listBarycentricTrim, mapMatMesh, mapTransMatrix) {
     matMesh.visible = true;
     //
     const wtol = getTriangleWorldToLocal(
-      parentMatMesh,
-      // matMesh,
+      gluedMatMesh,
       triangleIndex,
       triangleABC
     );
-    // console.log("wtol");
-    // console.log(wtol);
-    //
     const ltow = getInvertRotTrans(wtol);
-    ltow.multiply(m4LocalMatrixOnGluedPatternTriangle);
-    //
-    // console.log("matrixWorld: ");
-    // console.log(matMesh);
-    // // console.log(parentMatMesh);
-    // // console.log(parentMatMesh.parent);
-    //
-    const parentWtoL = new THREE.Matrix4().getInverse(
-      // new THREE.Matrix4().identity()
+    ltow.multiply(localMatrixOnGluedPatternTriangle);
 
-      mapTransMatrix.get(trimTF3DID).LtoW
-      // parentMatMesh.parent.matrixWorld
-    );
-    // console.log("parent");
-    // console.log(mapTransMatrix.get(trimTF3DID).LtoW);
+    arrTrimMeshID.forEach((trimMeshID) => {
+      const matMesh = mapMatMesh.get(trimMeshID);
+      // NOTE: Parent means the object3D that has matMesh. It's does not mesh or matMesh.
+      const parentWtoL = new THREE.Matrix4().getInverse(
+        matMesh.parent.matrixWorld
+      );
 
-    matMesh.geometry.applyMatrix(parentWtoL.multiply(ltow));
-    // console.log(parentWtoL);
-    // console.log(ltow);
-    // console.log(parentWtoL.multiply(ltow));
-    // console.log(matMesh.parent.localToWorld());
+      // NOTE: This flag should be false to control the matrix manually.
+      matMesh.matrixAutoUpdate = false;
+      matMesh.matrix = parentWtoL.multiply(ltow);
+    });
 
-    const t = buildTriangle(parentMatMesh, triangleIndex, triangleABC);
-    console.log(t);
+    const t = buildTriangle(gluedMatMesh, triangleIndex, triangleABC);
+    // console.log(t);
     tempObject3D.add(t);
+    // tempObject3D.add(matMesh);
   });
 
   // NOTE: TEST ONLY
@@ -104,10 +84,84 @@ function readData(listBarycentricTrim) {
   return listTrims;
 }
 
+function getTriangleWorldToLocal(matMesh, triangleIndex, triangleABC) {
+  const arrPos = matMesh.geometry.attributes.position.array;
+  const arrIdx = matMesh.geometry.index.array;
+
+  const getTriangle = (triangleIndex) => {
+    return [
+      arrIdx[triangleIndex * 3],
+      arrIdx[triangleIndex * 3 + 1],
+      arrIdx[triangleIndex * 3 + 2],
+    ];
+  };
+
+  const getPoints = (arrPointIdx) => {
+    const arrVector3 = [];
+    arrPointIdx.forEach((pointIdx) => {
+      const v3Point = new THREE.Vector3(
+        arrPos[pointIdx * 3],
+        arrPos[pointIdx * 3 + 1],
+        arrPos[pointIdx * 3 + 2]
+      );
+      arrVector3.push(v3Point);
+    });
+
+    return arrVector3;
+  };
+
+  // console.log(getTriangle(triangleIndex));
+  // console.log(getPoints(getTriangle(triangleIndex)));
+
+  const p = getPoints(getTriangle(triangleIndex));
+
+  const axisX = new THREE.Vector3().subVectors(p[1], p[0]);
+  axisX.normalize();
+
+  const axisY = new THREE.Vector3().subVectors(p[2], p[0]);
+  const axisYDotAxisX = axisY.clone().dot(axisX);
+  const axisYRestCompute = axisX.clone().multiplyScalar(axisYDotAxisX);
+  axisY.sub(axisYRestCompute).normalize();
+
+  const axisZ = new THREE.Vector3().crossVectors(axisX, axisY);
+  axisZ.normalize();
+
+  const ltow = new THREE.Matrix4().makeBasis(axisX, axisY, axisZ);
+  const trans = new THREE.Vector3()
+    .addScaledVector(p[0], triangleABC.x)
+    .addScaledVector(p[1], triangleABC.y)
+    .addScaledVector(p[2], triangleABC.z);
+  ltow.setPosition(trans);
+
+  return getInvertRotTrans(ltow);
+}
+
+function getInvertRotTrans(matA) {
+  const A = (n) => {
+    return matA.elements[n];
+  };
+
+  // prettier-ignore
+  const B = new THREE.Matrix4().set(
+    A(0), A(1), A(2),  A(12),
+    A(4), A(5), A(6),  A(13),
+    A(8), A(9), A(10), A(14),
+    -(A(0) * A(3) + A(4) * A(7) + A(8) * A(11)),
+    -(A(1) * A(3) + A(5) * A(7) + A(9) * A(11)),
+    -(A(2) * A(3) + A(6)* A(7) + A(10) * A(11)),
+    A(15)
+  );
+
+  return B;
+}
+
 // NOTE: Test only
 function buildTriangle(matMesh, triangleIndex, triangleABC) {
   const arrPos = matMesh.geometry.attributes.position.array;
   const arrIdx = matMesh.geometry.index.array;
+
+  // const arrPos = matMesh.userData.originalPos;
+  // const arrIdx = matMesh.userData.originalIndices;
 
   const getTriangle = (triangleIndex) => {
     return [
@@ -139,7 +193,6 @@ function buildTriangle(matMesh, triangleIndex, triangleABC) {
   for (let i = 0; i < p.length; ++i) {
     ps.push(p[i].x, p[i].y, p[i].z);
   }
-  console.log(ps);
 
   const bufferGeometry = new THREE.BufferGeometry();
   bufferGeometry.addAttribute(
@@ -151,80 +204,27 @@ function buildTriangle(matMesh, triangleIndex, triangleABC) {
   return threeMesh;
 }
 
-function getTriangleWorldToLocal(matMesh, triangleIndex, triangleABC) {
-  const arrPos = matMesh.geometry.attributes.position.array;
-  const arrIdx = matMesh.geometry.index.array;
-
-  const getTriangle = (triangleIndex) => {
-    return [
-      arrIdx[triangleIndex * 3],
-      arrIdx[triangleIndex * 3 + 1],
-      arrIdx[triangleIndex * 3 + 2],
-    ];
-  };
-
-  const getPoints = (arrPointIdx) => {
-    const arrVector3 = [];
-    arrPointIdx.forEach((pointIdx) => {
-      const v3Point = new THREE.Vector3(
-        arrPos[pointIdx * 3],
-        arrPos[pointIdx * 3 + 1],
-        arrPos[pointIdx * 3 + 2]
-      );
-      arrVector3.push(v3Point);
-    });
-
-    return arrVector3;
-  };
-
-  // console.log(getTriangle(triangleIndex));
-  // console.log(getPoints(getTriangle(triangleIndex)));
-
-  const p = getPoints(getTriangle(triangleIndex));
-  console.log("p");
-  console.log(p);
-  const axisX = new THREE.Vector3().subVectors(p[1], p[0]).normalize();
-  const axisY = new THREE.Vector3().subVectors(p[2], p[0]);
-  const axisYRestCompute = new THREE.Vector3()
-    .multiplyVectors(axisX, axisY)
-    .multiply(axisX);
-  axisY.sub(axisYRestCompute).normalize();
-  const axisZ = new THREE.Vector3().crossVectors(axisX, axisY).normalize();
-
-  const ltow = new THREE.Matrix4().makeBasis(axisX, axisY, axisZ);
-  const trans = new THREE.Vector3()
-    .addScaledVector(p[0], triangleABC.x)
-    .addScaledVector(p[1], triangleABC.y)
-    .addScaledVector(p[2], triangleABC.z);
-  ltow.setPosition(trans);
-
-  return getInvertRotTrans(ltow);
-}
-
-function getInvertRotTrans(matA) {
-  /*
-   0  4  8 12
-   1  5  9 13
-   2  6 10 14
-   3  7 11 15
- */
-  /*
-            nv_scalar a00, a10, a20, a30;   // standard names for components
-            nv_scalar a01, a11, a21, a31;   // standard names for components
-            nv_scalar a02, a12, a22, a32;   // standard names for components
-            nv_scalar a03, a13, a23, a33;   // standard names for components
-   */
-  const A = (n) => {
-    return matA.elements[n];
-  };
-
-  // prettier-ignore
-  const B = new THREE.Matrix4().set(
-    A(0), A(1), A(2),  -(A(0) * A(12) + A(1) * A(13) + A(2) * A(14)),
-    A(4), A(5), A(6),  -(A(4) * A(12) + A(5) * A(13) + A(6) * A(14)),
-    A(8), A(9), A(10), -(A(8) * A(12) + A(9) * A(13) + A(10) * A(14)),
-    A(3), A(7), A(11), A(15)
-  )
-
-  return B;
-}
+// export function processZipper(listZipper, mapMatMesh) {
+//   const parse = (mapData) => {
+//     console.log(mapData);
+//     // mapData.
+//   };
+//
+//   listZipper.forEach((mapZipperInfo) => {
+//     // NOTE:
+//     // Zipper is made up of three parts that top stopper, bottom stopper, and slide.
+//     // But in this module, all parts are treated as the same.
+//     const listTF = [];
+//
+//     mapZipperInfo
+//       .get("listBottomStopperTF3DList")
+//       .forEach((l) => listTF.push[l]);
+//     mapZipperInfo.get("listTopStopperTF3DList").forEach((l) => listTF.push[l]);
+//     listTF.push(mapZipperInfo.get("mapZipperSlider"));
+//
+//     mapZipperInfo.forEach((mapData) => {
+//       parse(mapData);
+//       process({});
+//     });
+//   });
+// }

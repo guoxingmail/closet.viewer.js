@@ -8,6 +8,7 @@ import {
   processAvatarSizingBodyFile,
 } from "./FittingIO";
 import { getTableSize } from "./FittingResizableBody";
+import FittingBodySize from "@/lib/fitting/FittingBodySize";
 
 export default class Fitting {
   constructor({ scene: scene, zrest: zrest }) {
@@ -18,26 +19,15 @@ export default class Fitting {
 
     this.processAvatarSizingFile = processAvatarSizingFile;
     this.mapHeightWeightTo5Sizes = null;
-    this.getSizes = (height, weight) => {
-      if (this.avatar) {
-        return this.avatar.resizableBody.getSizes(height, weight);
-      } else {
-        if (this.mapHeightWeightTo5Sizes) {
-          return getTableSize(height, weight, this.mapHeightWeightTo5Sizes);
-        } else {
-          console.log("ERROR: Load sizing file first.");
-          return null;
-        }
-      }
-    };
 
     this.avatarId = 0;
     this.avatarSkinType = 0;
 
     this.zrest = zrest;
     this.avatar = null;
-
     this.garment = new FittingGarment();
+    this.bodySize = new FittingBodySize();
+
     this.getZcrpFilename = this.garment.getGarmentFileName;
     this.loadZcrp = this.garment.loadZcrp;
     this.loadDrapingSamplingJSON = ({
@@ -63,13 +53,6 @@ export default class Fitting {
     console.log("\t++loadAvatarResizingData");
     await this.loadAvatarResizingDataWithAcc({ sizingURL, accURL });
     console.log("\t--loadAvatarResizingData");
-  }
-
-  // NOTE: This function called when needs to get sizes only.
-  async loadSizingTable(sizingURL) {
-    const sizeObj = await processAvatarSizingBodyFile(sizingURL);
-    this.mapHeightWeightTo5Sizes = sizeObj.mapHeightWeightTo5Sizes;
-    console.log("Load sizing table complete.");
   }
 
   async loadAvatar({ url, onProgress, onLoad }) {

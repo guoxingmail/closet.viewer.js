@@ -36,9 +36,10 @@ export default class ResizableBody {
       mapBaseMesh
     );
     this.mapStartIndex = mapBaseMesh.get("mapStartIndex");
-    // this.mapAccessoryMSRenderToSkinPos = this.buildMapMatshapeRenderToSkinPos(
-    //   mapAccessoryMesh
-    // );
+
+    this.getSizes = (height, weight) => {
+      return getTableSize(height, weight, this.mHeightWeightTo5SizesMap);
+    }
   }
 
   setFeatureEnable = () => {
@@ -87,7 +88,7 @@ export default class ResizableBody {
     );
     // console.warn(MEASUREMENT_LIST_NAME.SIZE_OF_MEASUREMENT_LIST);
 
-    const tableSize = this.getTableSize(height, weight);
+    const tableSize = getTableSize(height, weight, this.mHeightWeightTo5SizesMap);
     if (!tableSize) return;
 
     const changedSize = this.applyBodyShape(
@@ -292,35 +293,6 @@ export default class ResizableBody {
     return returnValue;
   };
 
-  getTableSize = (height, weight) => {
-    // console.log(this.mHeightWeightTo5SizesMap);
-    // console.log(height, weight);
-    const heightTable = this.mHeightWeightTo5SizesMap.get(String(height));
-    const arrSize = heightTable ? heightTable.get(String(weight)) : null;
-
-    if (!arrSize) {
-      console.error(
-        "ERROR: No data found. height: " + height + ", weight: " + weight
-      );
-      console.log(this.mHeightWeightTo5SizesMap);
-      return;
-    }
-    // const arrSize = this.mHeightWeightTo5SizesMap
-    //   .get(String(height))
-    //   .get(String(weight));
-
-    // TODO: Check if this order is correct
-    const returnValue = {};
-    returnValue["chest"] = arrSize[0];
-    returnValue["waist"] = arrSize[1];
-    returnValue["hip"] = arrSize[2];
-    returnValue["armLength"] = arrSize[3];
-    returnValue["legLength"] = arrSize[4];
-
-    // console.log(returnValue);
-    return returnValue;
-  };
-
   dataSymmetrization = (returnVertex) => {
     // console.warn(returnVertex);
     // console.warn(this.mSymmetryIndex);
@@ -419,74 +391,37 @@ export default class ResizableBody {
 
     return renderPos;
   };
-
-  // inputBaseVertex = (mapSkinController) => {
-  //   console.log("inputBaseVertex");
-  //   console.log(mapSkinController);
-  //   const integratedPos = new Array(this.mVertexSize * 3);
-  //   const integratedIdx = new Array(this.mVertexSize);
-
-  //   for (const entries of this.mStartIndexMap.entries()) {
-  //     // const partName = entries[0];
-  //     const partName = "body";
-  //     const startIndex = entries[1];
-  //     const partSC =
-  //       mapSkinController.get(partName) ||
-  //       mapSkinController.get(partName + "_Shape");
-  //     // console.log(partName, startIndex, partSC);
-
-  //     if (partSC) {
-  //       const partMapMesh = partSC.get("mapMesh");
-  //       const partPosition = readByteArray(
-  //         "Float",
-  //         partMapMesh.get("baPosition")
-  //       );
-  //       const partIndex = readByteArray("Uint", partMapMesh.get("baIndex"));
-  //       console.log(partIndex);
-  //       console.log(partPosition);
-  //       // console.log(startIndex, partPosition.length);
-
-  //       for (
-  //         let index = startIndex;
-  //         index < partPosition.length + startIndex;
-  //         ++index
-  //       ) {
-  //         const curIdx = startIndex + index;
-  //         integratedPos[index] = partPosition[curIdx];
-  //         integratedIdx[index] = partIndex[curIdx] + index;
-  //       }
-
-  //       // console.log(partPosition);
-  //       // console.log(partIndex);
-  //     } else {
-  //       console.warn("Skin controller missing: " + partName);
-  //     }
-  //   }
-
-  //   this.baseVertex = this.convertFloatArrayToVector3Array(integratedPos);
-  //   console.log(this.baseVertex);
-
-  //   return integratedIdx;
-
-  //   // console.log(this.mBaseVertex);
-  //   // console.log(baseVertex);
-  //   // for (let i = 0; i < baseVertex; ++i) {
-  //   //   this.mBaseVertex[i] = baseVertex[i];
-  //   // }
-  //   // this.mBaseVertex = baseVertex;
-  //   // test
-  //   // if (baseVertex) {
-  //   //   if (baseVertex.length / 3 === this.mVertexSize) {
-  //   //     console.log("BASE VERTEX CORRECT");
-  //   //   }
-  //   // }
-  // };
-
-  convertVec3ArrayToFloatArray = (vec3Array) => {
-    const floatArray = [];
-    vec3Array.forEach((v) => {
-      floatArray.push(v.x, v.y, v.z);
-    });
-    return floatArray;
-  };
 }
+export function getTableSize(height, weight, table) {
+  if (!table) {
+    console.log("No table data found");
+    return;
+  }
+  // console.log(this.mHeightWeightTo5SizesMap);
+  // console.log(height, weight);
+  const heightTable = table.get(String(height));
+  const arrSize = heightTable ? heightTable.get(String(weight)) : null;
+
+  if (!arrSize) {
+    console.error(
+      "ERROR: No data found. height: " + height + ", weight: " + weight
+    );
+    console.log(table);
+    // console.log(this.mHeightWeightTo5SizesMap);
+    return;
+  }
+  // const arrSize = this.mHeightWeightTo5SizesMap
+  //   .get(String(height))
+  //   .get(String(weight));
+
+  // TODO: Check if this order is correct
+  const returnValue = {};
+  returnValue["chest"] = arrSize[0];
+  returnValue["waist"] = arrSize[1];
+  returnValue["hip"] = arrSize[2];
+  returnValue["armLength"] = arrSize[3];
+  returnValue["legLength"] = arrSize[4];
+
+  // console.log(returnValue);
+  return returnValue;
+};

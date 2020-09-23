@@ -4,6 +4,22 @@ import { ZRestLoader } from "@/lib/clo/readers/ZrestLoader";
 import * as THREE from "@/lib/threejs/three";
 
 export async function processAvatarSizingFile({ sizingURL, accURL }) {
+  const sizeObj = await processAvatarSizingBodyFile(sizingURL);
+
+  const mapBaseMesh = sizeObj.mapBaseMesh;
+  const convertingMatData = sizeObj.convertingMatData;
+  const mapHeightWeightTo5Sizes = sizeObj.mapHeightWeightTo5Sizes;
+  const mapAccessoryMesh = await processAvatarSizingAccFile(accURL);
+
+  return {
+    mapBaseMesh,
+    convertingMatData,
+    mapHeightWeightTo5Sizes,
+    mapAccessoryMesh,
+  };
+}
+
+export async function processAvatarSizingBodyFile(sizingURL) {
   const getParsedData = async (filename, loadedData) => {
     return await unzipParse({
       loadedData: loadedData,
@@ -13,9 +29,7 @@ export async function processAvatarSizingFile({ sizingURL, accURL }) {
 
   console.log("\t\t\t++loadSizingData");
   const loadedSizingData = await loadFile(sizingURL);
-  console.log("\t\t\t++loadAccData");
-  const loadedAccData = await loadFile(accURL);
-
+  console.log(loadedSizingData);
   console.log("\t\t\t++getParsedData");
   const mapBaseMesh = await getParsedData("BaseMesh.map", loadedSizingData);
 
@@ -24,27 +38,32 @@ export async function processAvatarSizingFile({ sizingURL, accURL }) {
     loadedSizingData,
     "ConvertingMat_DETAIL_Simple_Weight_TotalHeight.bd"
   );
-
-  console.log("\t\t\t++readConvertingMatData");
+  // console.log("\t\t\t++readConvertingMatData");
   const convertingMatData = readConvertingMatData({
     unzippedConvertingMatData,
   });
 
-  console.log("\t\t\t++getParsedData");
+  // console.log("\t\t\t++getParsedData");
   const mapHeightWeightTo5Sizes = await getParsedData(
     "HeightWeightTo5SizesMap.map",
     loadedSizingData
   );
 
-  console.log("\t\t\t++readMapFromUnzippedData");
-  const mapAccessoryMesh = await readMapFromUnzippedData(loadedAccData, 0);
-
   return {
     mapBaseMesh,
     convertingMatData,
     mapHeightWeightTo5Sizes,
-    mapAccessoryMesh,
   };
+}
+
+async function processAvatarSizingAccFile(accURL) {
+  // console.log("\t\t\t++loadAccData");
+  const loadedAccData = await loadFile(accURL);
+
+  // console.log("\t\t\t++readMapFromUnzippedData");
+  const mapAccessoryMesh = await readMapFromUnzippedData(loadedAccData, 0);
+
+  return mapAccessoryMesh;
 }
 
 function readConvertingMatData({ unzippedConvertingMatData }) {

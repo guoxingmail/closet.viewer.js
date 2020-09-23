@@ -1,33 +1,34 @@
 import * as THREE from "@/lib/threejs/three";
-import { readByteArray } from "@/lib/clo/file/KeyValueMapReader";
 import FittingGarment from "./FittingGarment";
 import FittingAvatar from "./FittingAvatar";
 // import ResizableBody from "./FittingResizableBody";
-import { loadZrestForFitting, processAvatarSizingFile } from "./FittingIO";
-import { computeBarycentric } from "./FittingBarycentricCoord";
-import FittingSkinControllerManager from "./FittingSkinControllerManager";
+import {
+  loadZrestForFitting,
+  processAvatarSizingFile,
+  processAvatarSizingBodyFile,
+} from "./FittingIO";
+import { getTableSize } from "./FittingResizableBody";
 
 export default class Fitting {
   constructor({ scene: scene, zrest: zrest }) {
     // Set containers for three.js
     this.scene = scene;
     this.container = new THREE.Object3D();
-    // this.container.name = "fittingContainer";
-    // this.scene.add(this.container);
     zrest.addThreeContainerUniquely(this.container, "fittingContainer");
 
-    // this.mapTriangleIdx = new Map();
-
-    // this.listPositions = [];
-    // this.listAvatarMesh = [];
-    // this.listAvatarMeshIdx = [];
-    // this.bodySkinController = null;
-    // this.bodyVertexIndex = [];
-    // this.bodyVertexPos = [];
-
     this.processAvatarSizingFile = processAvatarSizingFile;
-    this.getSizes = () => {
-      return null;
+    this.mapHeightWeightTo5Sizes = null;
+    this.getSizes = (height, weight) => {
+      if (this.avatar) {
+        return this.avatar.resizableBody.getSizes(height, weight);
+      } else {
+        if (this.mapHeightWeightTo5Sizes) {
+          return getTableSize(height, weight, this.mapHeightWeightTo5Sizes);
+        } else {
+          console.log("ERROR: Load sizing file first.");
+          return null;
+        }
+      }
     };
 
     this.avatarId = 0;
@@ -60,8 +61,15 @@ export default class Fitting {
     await this.loadAvatar({ url: avatarURL });
     console.log("\t--loadAvatar");
     console.log("\t++loadAvatarResizingData");
-    await this.loadAvatarResizingData({ sizingURL, accURL });
+    await this.loadAvatarResizingDataWithAcc({ sizingURL, accURL });
     console.log("\t--loadAvatarResizingData");
+  }
+
+  // NOTE: This function called when needs to get sizes only.
+  async loadSizingTable(sizingURL) {
+    const sizeObj = await processAvatarSizingBodyFile(sizingURL);
+    this.mapHeightWeightTo5Sizes = sizeObj.mapHeightWeightTo5Sizes;
+    console.log("Load sizing table complete.");
   }
 
   async loadAvatar({ url, onProgress, onLoad }) {
@@ -79,16 +87,14 @@ export default class Fitting {
     this.avatar.init();
   }
 
-  async loadAvatarResizingData({ sizingURL, accURL }) {
+  async loadAvatarResizingDataWithAcc({ sizingURL, accURL }) {
     console.log("\t\t++processAvatarSizingFile");
     const avatarSizingInfoObj = await processAvatarSizingFile({
       sizingURL,
       accURL,
     });
-    console.log("\t\t--processAvatarSizingFile");
-    console.log("\t\t++initResizableBodyWithAcc");
     this.avatar.initResizableBodyWithAcc(avatarSizingInfoObj);
-    console.log("\t\t--initResizableBodyWithAcc");
+    this.mapHeightWeightTo5Sizes = this.avatar.resizableBody.mapHeightWeightTo5Sizes;
   }
 
   async resizeAvatarWithAcc({
@@ -235,22 +241,7 @@ export default class Fitting {
     return mapTransMatrix;
   }
 
-  getMatrix4(matrixFromCLO) {
+  convertCLOMatrixToThree(matrixFromCLO) {
     return new THREE.Matrix4().fromArray(Object.values(matrixFromCLO));
-  }
-
-  convertCLOMatrixToThree(matrix) {
-    return this.getMatrix4(matrix);
-
-    const m = matrix;
-
-    // prettier-ignore
-    const result = new THREE.Matrix4().set(
-      m.a00, m.a01, m.a02, m.a03,
-      m.a10, m.a11, m.a12, m.a13,
-      m.a20, m.a21, m.a22, m.a23,
-      m.a30, m.a31, m.a32, m.a33);
-
-    return result;
   }
 }

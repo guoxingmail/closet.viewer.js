@@ -1,11 +1,8 @@
 import * as THREE from "@/lib/threejs/three";
-import { readByteArray } from "@/lib/clo/file/KeyValueMapReader";
 import FittingGarment from "./FittingGarment";
 import FittingAvatar from "./FittingAvatar";
 // import ResizableBody from "./FittingResizableBody";
 import { loadZrestForFitting, processAvatarSizingFile } from "./FittingIO";
-import { computeBarycentric } from "./FittingBarycentricCoord";
-import FittingSkinControllerManager from "./FittingSkinControllerManager";
 
 export default class Fitting {
   constructor({ scene: scene, zrest: zrest }) {
@@ -26,8 +23,10 @@ export default class Fitting {
     // this.bodyVertexPos = [];
 
     this.processAvatarSizingFile = processAvatarSizingFile;
-    this.getSizes = () => {
-      return null;
+    this.getSizes = (height, weight) => {
+      return this.avatar
+        ? this.avatar.resizableBody.getTableSize(height, weight)
+        : null;
     };
 
     this.avatarId = 0;
@@ -235,22 +234,7 @@ export default class Fitting {
     return mapTransMatrix;
   }
 
-  getMatrix4(matrixFromCLO) {
+  convertCLOMatrixToThree(matrixFromCLO) {
     return new THREE.Matrix4().fromArray(Object.values(matrixFromCLO));
-  }
-
-  convertCLOMatrixToThree(matrix) {
-    return this.getMatrix4(matrix);
-
-    const m = matrix;
-
-    // prettier-ignore
-    const result = new THREE.Matrix4().set(
-      m.a00, m.a01, m.a02, m.a03,
-      m.a10, m.a11, m.a12, m.a13,
-      m.a20, m.a21, m.a22, m.a23,
-      m.a30, m.a31, m.a32, m.a33);
-
-    return result;
   }
 }

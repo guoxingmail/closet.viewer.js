@@ -13,11 +13,16 @@ export function processTrims(listBarycentricTrim, mapMatMesh, mapTransMatrix) {
     const localMatrixOnGluedPatternTriangle = getMatrix4(
       obj.m4LocalMatrixOnGluedPatternTriangle
     );
-    console.log("m4");
-    console.log(trimTF3DID);
-    console.log(m4LocalMatrixOnGluedPatternTriangle);
-    matMesh.visible = true;
-    //
+
+    process({
+      arrMeshID: arrTrimMeshID,
+      gluedMatMeshID: obj.patternMatMeshID,
+      triangleIndex: triangleIndex, // glued pattern triangle index
+      triangleABC: triangleABC, // glued pattern triangle ABC
+      localMatrix: localMatrixOnGluedPatternTriangle, // local matrix on glued pattern triangle
+      mapMatMesh: mapMatMesh,
+    });
+
     const wtol = getTriangleWorldToLocal(
       gluedMatMesh,
       triangleIndex,
@@ -46,6 +51,48 @@ export function processTrims(listBarycentricTrim, mapMatMesh, mapTransMatrix) {
 
   // NOTE: TEST ONLY
   return tempObject3D;
+}
+
+function process({
+  arrMeshID: arrMeshID,
+  gluedMatMeshID: gluedMatMeshID,
+  triangleIndex: triangleIndex, // glued pattern triangle index
+  triangleABC: triangleABC, // glued pattern triangle ABC
+  localMatrix: localMatrix, // local matrix on glued pattern triangle
+  mapMatMesh: mapMatMesh,
+}) {
+  console.log({
+    arrMeshID: arrMeshID,
+    triangleIndex: triangleIndex, // glued pattern triangle index
+    triangleABC: triangleABC, // glued pattern triangle ABC
+    localMatrix: localMatrix, // local matrix on glued pattern triangle
+    mapMatMesh: mapMatMesh,
+  });
+
+  const gluedMatMesh = mapMatMesh.get(gluedMatMeshID);
+  const wtol = getTriangleWorldToLocal(
+    gluedMatMesh,
+    triangleIndex,
+    triangleABC
+  );
+  const ltow = getInvertRotTrans(wtol);
+  if (localMatrix[0]) {
+    ltow.multiply(localMatrix);
+  } else {
+    ltow.multiply(getMatrix4(localMatrix));
+  }
+
+  arrMeshID.forEach((trimMeshID) => {
+    const matMesh = mapMatMesh.get(trimMeshID);
+    // NOTE: Parent means the object3D that has matMesh. It's does not mesh or matMesh.
+    const parentWtoL = new THREE.Matrix4().getInverse(
+      matMesh.parent.matrixWorld
+    );
+
+    // NOTE: This flag should be false to control the matrix manually.
+    matMesh.matrixAutoUpdate = false;
+    matMesh.matrix = parentWtoL.multiply(ltow);
+  });
 }
 
 function getMatrix4(matrixFromCLO) {
@@ -109,9 +156,6 @@ function getTriangleWorldToLocal(matMesh, triangleIndex, triangleABC) {
 
     return arrVector3;
   };
-
-  // console.log(getTriangle(triangleIndex));
-  // console.log(getPoints(getTriangle(triangleIndex)));
 
   const p = getPoints(getTriangle(triangleIndex));
 
@@ -204,27 +248,41 @@ function buildTriangle(matMesh, triangleIndex, triangleABC) {
   return threeMesh;
 }
 
-// export function processZipper(listZipper, mapMatMesh) {
-//   const parse = (mapData) => {
-//     console.log(mapData);
-//     // mapData.
-//   };
-//
-//   listZipper.forEach((mapZipperInfo) => {
-//     // NOTE:
-//     // Zipper is made up of three parts that top stopper, bottom stopper, and slide.
-//     // But in this module, all parts are treated as the same.
-//     const listTF = [];
-//
-//     mapZipperInfo
-//       .get("listBottomStopperTF3DList")
-//       .forEach((l) => listTF.push[l]);
-//     mapZipperInfo.get("listTopStopperTF3DList").forEach((l) => listTF.push[l]);
-//     listTF.push(mapZipperInfo.get("mapZipperSlider"));
-//
-//     mapZipperInfo.forEach((mapData) => {
-//       parse(mapData);
-//       process({});
-//     });
-//   });
-// }
+export function processZipper(listZipper, mapMatMesh) {
+  console.log(listZipper);
+
+  const parse = (mapData, arrMatMeshField, arrMatMeshField2) => {
+    console.log(mapData);
+
+    const arrMeshID = arrMatMeshField2
+      ? [...mapData.get(arrMatMeshField), ...mapData.get(arrMatMeshField2)]
+      : mapData.get(arrMatMeshField);
+    console.log(arrMeshID);
+
+    process({
+      arrMeshID: arrMeshID,
+      gluedMatMeshID: mapData.get("uiPatternMatMeshID"),
+      triangleIndex: mapData.get("iGluedPatternTriangleIndex"), // glued pattern triangle index
+      triangleABC: mapData.get("v3GluedPatternTriangleABC"), // glued pattern triangle ABC
+      localMatrix: mapData.get("m4LocalMatrixOnGluedPatternTriangle"), // local matrix on glued pattern triangle
+      mapMatMesh: mapMatMesh,
+    });
+  };
+
+  // NOTE:
+  // Zipper is made up of three parts that top stopper, bottom stopper, and slide.
+  // But in this module, all parts are treated as the same.
+  listZipper.forEach((mapZipperInfo) => {
+    mapZipperInfo
+      .get("listBottomStopperTF3DList")
+      .forEach((l) => parse(l, "arrZipperBottomStopperMatMeshID"));
+    mapZipperInfo
+      .get("listTopStopperTF3DList")
+      .forEach((l) => parse(l, "arrZipperTopStopperMatMeshID"));
+    parse(
+      mapZipperInfo.get("mapZipperSlider"),
+      "arrZipperPullerMatMeshID",
+      "arrZipperSliderMatMeshID"
+    );
+  });
+}

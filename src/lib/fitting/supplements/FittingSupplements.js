@@ -5,7 +5,7 @@ import {
 } from "@/lib/fitting/supplements/FittingOverrayPrint";
 import {
   processTrims,
-  // processZipper,
+  processZipper,
 } from "@/lib/fitting/supplements/FittingTrims";
 import { loadFile, unZip } from "@/lib/clo/readers/FileLoader";
 import { readMap } from "@/lib/clo/file/KeyValueMapReader";
@@ -41,10 +41,10 @@ export default class FittingSupplements {
     if (listBarycentricTrim)
       return processTrims(listBarycentricTrim, mapMatMesh, mapTransMatrix); // NOTE: RETURN FOR TEST ONLY
 
-    // const listZipper = rootMap.get("listZipper");
-    // if (listZipper) {
-    //   processZipper(listZipper, mapMatMesh);
-    // }
+    const listZipper = rootMap.get("listZipper");
+    if (listZipper) {
+      processZipper(listZipper, mapMatMesh);
+    }
   }
 
   async load(supplementsFile) {

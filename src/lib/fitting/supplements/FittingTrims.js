@@ -1,9 +1,7 @@
 import * as THREE from "@/lib/threejs/three";
 
-export function processTrims(listBarycentricTrim, mapMatMesh, mapTransMatrix) {
+export function processTrims(listBarycentricTrim, mapMatMesh) {
   const listTrims = readData(listBarycentricTrim);
-
-  const tempObject3D = new THREE.Object3D();
 
   listTrims.forEach((obj) => {
     const arrTrimMeshID = obj.arrTrimMeshID;
@@ -16,41 +14,13 @@ export function processTrims(listBarycentricTrim, mapMatMesh, mapTransMatrix) {
 
     process({
       arrMeshID: arrTrimMeshID,
-      gluedMatMeshID: obj.patternMatMeshID,
+      gluedMatMeshID: gluedMatMesh,
       triangleIndex: triangleIndex, // glued pattern triangle index
       triangleABC: triangleABC, // glued pattern triangle ABC
       localMatrix: localMatrixOnGluedPatternTriangle, // local matrix on glued pattern triangle
       mapMatMesh: mapMatMesh,
     });
-
-    const wtol = getTriangleWorldToLocal(
-      gluedMatMesh,
-      triangleIndex,
-      triangleABC
-    );
-    const ltow = getInvertRotTrans(wtol);
-    ltow.multiply(localMatrixOnGluedPatternTriangle);
-
-    arrTrimMeshID.forEach((trimMeshID) => {
-      const matMesh = mapMatMesh.get(trimMeshID);
-      // NOTE: Parent means the object3D that has matMesh. It's does not mesh or matMesh.
-      const parentWtoL = new THREE.Matrix4().getInverse(
-        matMesh.parent.matrixWorld
-      );
-
-      // NOTE: This flag should be false to control the matrix manually.
-      matMesh.matrixAutoUpdate = false;
-      matMesh.matrix = parentWtoL.multiply(ltow);
-    });
-
-    const t = buildTriangle(gluedMatMesh, triangleIndex, triangleABC);
-    // console.log(t);
-    tempObject3D.add(t);
-    // tempObject3D.add(matMesh);
   });
-
-  // NOTE: TEST ONLY
-  return tempObject3D;
 }
 
 function process({
@@ -61,14 +31,6 @@ function process({
   localMatrix: localMatrix, // local matrix on glued pattern triangle
   mapMatMesh: mapMatMesh,
 }) {
-  console.log({
-    arrMeshID: arrMeshID,
-    triangleIndex: triangleIndex, // glued pattern triangle index
-    triangleABC: triangleABC, // glued pattern triangle ABC
-    localMatrix: localMatrix, // local matrix on glued pattern triangle
-    mapMatMesh: mapMatMesh,
-  });
-
   const gluedMatMesh = mapMatMesh.get(gluedMatMeshID);
   const wtol = getTriangleWorldToLocal(
     gluedMatMesh,
@@ -76,22 +38,23 @@ function process({
     triangleABC
   );
   const ltow = getInvertRotTrans(wtol);
-  if (localMatrix[0]) {
-    ltow.multiply(localMatrix);
-  } else {
-    ltow.multiply(getMatrix4(localMatrix));
-  }
+  const isMatrixCLOStyle = localMatrix.a00 !== undefined;
 
-  arrMeshID.forEach((trimMeshID) => {
-    const matMesh = mapMatMesh.get(trimMeshID);
+  const threeStyleLM = isMatrixCLOStyle ? getMatrix4(localMatrix) : localMatrix;
+  ltow.multiply(threeStyleLM);
+
+  arrMeshID.forEach((matMeshID) => {
+    const matMesh = mapMatMesh.get(matMeshID);
+
+    // NOTE: This flag should be false to control the matrix manually.
+    matMesh.matrixAutoUpdate = false;
+
     // NOTE: Parent means the object3D that has matMesh. It's does not mesh or matMesh.
     const parentWtoL = new THREE.Matrix4().getInverse(
       matMesh.parent.matrixWorld
     );
 
-    // NOTE: This flag should be false to control the matrix manually.
-    matMesh.matrixAutoUpdate = false;
-    matMesh.matrix = parentWtoL.multiply(ltow);
+    matMesh.matrix = new THREE.Matrix4().multiplyMatrices(parentWtoL, ltow);
   });
 }
 
@@ -170,7 +133,15 @@ function getTriangleWorldToLocal(matMesh, triangleIndex, triangleABC) {
   const axisZ = new THREE.Vector3().crossVectors(axisX, axisY);
   axisZ.normalize();
 
-  const ltow = new THREE.Matrix4().makeBasis(axisX, axisY, axisZ);
+  const ltow = new THREE.Matrix4().identity();
+
+  // const ltow = new THREE.Matrix4().makeBasis(
+  //   axisX,
+  //   new THREE.Vector3(0.00000001, 0.00000001, 0.00000001),
+  //   axisZ
+  // );
+  // const ltow = new THREE.Matrix4().makeBasis(axisX, axisY, axisZ);
+  // const trans = new THREE.Vector3(1, 1, 1);
   const trans = new THREE.Vector3()
     .addScaledVector(p[0], triangleABC.x)
     .addScaledVector(p[1], triangleABC.y)
@@ -284,5 +255,68 @@ export function processZipper(listZipper, mapMatMesh) {
       "arrZipperPullerMatMeshID",
       "arrZipperSliderMatMeshID"
     );
+  });
+}
+
+export function processButtonHead(listButtonHead, mapMatMesh) {
+  const parse = (mapData, arrMatMeshField, arrMatMeshField2) => {
+    console.log(mapData);
+
+    const arrMeshID = arrMatMeshField2
+      ? [...mapData.get(arrMatMeshField), ...mapData.get(arrMatMeshField2)]
+      : mapData.get(arrMatMeshField);
+    console.log(arrMeshID);
+
+    process({
+      arrMeshID: arrMeshID,
+      gluedMatMeshID: mapData.get("uiPatternMatMeshID"),
+      triangleIndex: mapData.get("iGluedPatternTriangleIndex"), // glued pattern triangle index
+      triangleABC: mapData.get("v3GluedPatternTriangleABC"), // glued pattern triangle ABC
+      localMatrix: mapData.get("m4LocalMatrixOnGluedPatternTriangle"), // local matrix on glued pattern triangle
+      mapMatMesh: mapMatMesh,
+    });
+  };
+
+  listButtonHead.forEach((btn) => {
+    console.log(btn);
+    console.log(btn.get("mat4ButtonLocalMatrix"));
+    // const m3 = new THREE.Matrix3().fromArray(
+    //   Object.values(btn.get("mat3ButtonOrientationMatrix"))
+    // );
+    const m4 = btn.get("mat4ButtonLocalMatrix");
+    // const m3 = Object.values(btn.get("mat3ButtonOrientationMatrix"));
+    // const m4 = new THREE.Matrix4().identity();
+    // const m4 = new THREE.Matrix4().set(
+    //   m3[0],
+    //   m3[1],
+    //   m3[2],
+    //   0,
+    //   m3[3],
+    //   m3[4],
+    //   m3[5],
+    //   0,
+    //   m3[6],
+    //   m3[7],
+    //   m3[8],
+    //   0,
+    //   0,
+    //   0,
+    //   0,
+    //   1
+    // );
+
+    // console.warn(btn.get("mat4ButtonLocalMatrix"));
+    process({
+      arrMeshID: btn.get("arrButtonMatMeshesID"),
+      gluedMatMeshID: btn.get("uiPatternMatMeshID"),
+      triangleIndex: btn.get("uiPatternTriangleIndex"),
+
+      // gluedMatMeshID: btn.get("uiBindPointPatternMatMeshID"),
+      // triangleIndex: btn.get("uiBindPointTriangleIdx"),
+      triangleABC: btn.get("vec3PatternABG"),
+      // localMatrix: m4,
+      localMatrix: btn.get("mat4ButtonLocalMatrix"),
+      mapMatMesh: mapMatMesh,
+    });
   });
 }

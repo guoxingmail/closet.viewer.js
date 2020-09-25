@@ -6,6 +6,7 @@ import {
 import {
   processTrims,
   processZipper,
+  processButtonHead,
 } from "@/lib/fitting/supplements/FittingTrims";
 import { loadFile, unZip } from "@/lib/clo/readers/FileLoader";
 import { readMap } from "@/lib/clo/file/KeyValueMapReader";
@@ -44,6 +45,11 @@ export default class FittingSupplements {
     const listZipper = rootMap.get("listZipper");
     if (listZipper) {
       processZipper(listZipper, mapMatMesh);
+    }
+
+    const listButtonHead = rootMap.get("listButtonHead");
+    if (listButtonHead) {
+      processButtonHead(listButtonHead, mapMatMesh);
     }
   }
 

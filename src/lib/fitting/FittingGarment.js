@@ -19,7 +19,7 @@ export default class FittingGarment {
     this.bodyVertexPos = [];
   }
 
-  // TODO: rootMap is huge. Find out better way.
+  // TODO: rootMap is huge. Find out the better way.
   init({ bodyVertexPos, bodyVertexIndex, zrest }) {
     //mapBarycentricPrintTexture
     // console.log({ bodyVertexPos, bodyVertexIndex, zrest })
@@ -66,25 +66,18 @@ export default class FittingGarment {
   }
 
   async loadDrapingDataFromURL({ zcrpURL }) {
-    const listBarycentricCoord = await this.loadZcrp(zcrpURL);
-    // return this.draping({ listBarycentricCoord, mapMatMesh });
+    await this.loadZcrp(zcrpURL);
   }
   
   getGarmentFileName = ({ height, weight}) => {
     return getGarmentFileName(height, weight, this.samplingJSON);
   }
 
-  async loadDrapingData({ rootPath, height, weight, mapMatMesh }) {
+  async loadDrapingData({ rootPath, height, weight }) {
     const zcrpName = getGarmentFileName(height, weight, this.samplingJSON);
     // const zcrpURL = rootPath + `P0_${height}_${weight}.zcrp`;
     const zcrpURL = rootPath + zcrpName;
-    const listBarycentricCoord = await this.loadZcrp(zcrpURL);
-
-    // console.log(this.samplingJSON);
-    // console.log(mapMatMesh);
-    // console.log(listBarycentricCoord);
-
-    // return this.draping({ listBarycentricCoord, mapMatMesh });
+    await this.loadZcrp(zcrpURL);
   }
 
   getListBarycentricCoord() {
@@ -131,7 +124,8 @@ export default class FittingGarment {
         }
 
         // TODO: Take a deep look
-        if (matMesh.userData.TYPE === 4) return; // NORMAL_MATMESH
+        if (matMesh.userData.TYPE !== 0) return; // PATTERN ONLY
+        // if (matMesh.userData.TYPE === 4 || matMesh.userData.TYPE === 3) return; // NORMAL_MATMESH, BUTTONHEAD
 
         const index = matMesh.userData.originalIndices;
         const uv = matMesh.userData.originalUv;
@@ -145,7 +139,7 @@ export default class FittingGarment {
         const reindex = index.map(x => (x - minIndex));
 
         const arrSlicedUV = uv.slice(minIndex * 2, (maxIndex + 1) * 2);
-        const arrSlicedUV2 = uv2.slice(minIndex * 2, (maxIndex + 1) * 2);
+        // const arrSlicedUV2 = uv2.slice(minIndex * 2, (maxIndex + 1) * 2);
 
         const taPos = new Float32Array(arrSlicedVertex);
         const taIndex = new Uint32Array(reindex);

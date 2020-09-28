@@ -244,17 +244,17 @@ export function processZipper(listZipper, mapMatMesh) {
   // Zipper is made up of three parts that top stopper, bottom stopper, and slide.
   // But in this module, all parts are treated as the same.
   listZipper.forEach((mapZipperInfo) => {
-    mapZipperInfo
-      .get("listBottomStopperTF3DList")
-      .forEach((l) => parse(l, "arrZipperBottomStopperMatMeshID"));
-    mapZipperInfo
-      .get("listTopStopperTF3DList")
-      .forEach((l) => parse(l, "arrZipperTopStopperMatMeshID"));
-    parse(
-      mapZipperInfo.get("mapZipperSlider"),
-      "arrZipperPullerMatMeshID",
-      "arrZipperSliderMatMeshID"
-    );
+    const bottomStopper = mapZipperInfo.get("listBottomStopperTF3DList");
+    if (bottomStopper)
+      bottomStopper.forEach((l) => parse(l, "arrZipperBottomStopperMatMeshID"));
+
+    const topStopper = mapZipperInfo.get("listTopStopperTF3DList");
+    if (topStopper)
+      topStopper.forEach((l) => parse(l, "arrZipperTopStopperMatMeshID"));
+
+    const slider = mapZipperInfo.get("mapZipperSlider");
+    if (slider)
+      parse(slider, "arrZipperPullerMatMeshID", "arrZipperSliderMatMeshID");
   });
 }
 

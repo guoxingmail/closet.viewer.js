@@ -8,30 +8,24 @@ export function processOverlayPrint(listPrintTextureBarycentric, mapMatMesh) {
   // TODO: Test only
   // mapMatMesh.forEach((matMesh) => (matMesh.visible = false));
 
-  const listPrintTexture = readData(listPrintTextureBarycentric);
-  // console.log(listPrintTexture);
-
-  // TEST: turn off all matmesh
-  // mapMatMesh.forEach((m) => {
-  //   if (m.userData.TYPE === 2) {
-  //     console.log(m.userData.MATMESH_ID);
-  //     m.visible = true;
-  //   } else m.visible = false;
-  // m.visible = false;
-  // });
+  const listPrintTexture = readData(
+    listPrintTextureBarycentric,
+    "uiPrintTextureMatMeshID"
+  );
+  console.log(listPrintTexture);
 
   listPrintTexture.forEach((obj) => {
-    const matMeshID = obj.matMeshID;
-    const matMesh = mapMatMesh.get(matMeshID);
+    const parentMatMeshID = obj.parentMatMeshID;
+    const parentMatMesh = mapMatMesh.get(parentMatMeshID);
 
     // if (matMesh) {
     //   console.log(matMesh);
     //   matMesh.visible = false;
     // }
-    const textureMatMesh = mapMatMesh.get(obj.printTextureMatMeshID);
+    const textureMatMesh = mapMatMesh.get(obj.elementMatMeshID);
     // console.log(textureMatMesh);
 
-    process(matMesh, textureMatMesh, obj.listABG, obj.listPtIndex);
+    process(parentMatMesh, textureMatMesh, obj.listABG, obj.listPtIndex);
 
     // console.log(textureMatMesh);
     // textureMatMesh.visible = true;
@@ -125,13 +119,6 @@ function process(matMesh, textureMatMesh, listABG, listPtIndex) {
     );
   };
 
-  // console.log(vertexCount);
-  // console.log(texturePos.length / 3);
-  // // console.log(listPos);
-  // // console.log(listABG.length);
-  // // console.log(listPtIndex.length);
-  // // console.log("===");
-
   if (bBoth) console.log("bBoth: " + matMesh.userData.MATMESH_ID);
 
   const end = bBoth ? vertexCount / 2 : vertexCount;
@@ -216,7 +203,6 @@ function process(matMesh, textureMatMesh, listABG, listPtIndex) {
   console.log(matMesh);
 }
 
-
 export function processPuckering(listBaryPuckering, mapMatMesh) {
   console.log("processPuckering");
   if (!listBaryPuckering || !mapMatMesh) return;
@@ -259,7 +245,6 @@ export function processStitch(listBaryStitch, mapMatMesh) {
     const textureMatMesh = mapMatMesh.get(obj.matMeshID);
     const matMesh = mapMatMesh.get(obj.printTextureMatMeshID);
 
-
     process(matMesh, textureMatMesh, obj.listABG, obj.listPtIndex);
 
     // console.log(textureMatMesh);
@@ -267,12 +252,17 @@ export function processStitch(listBaryStitch, mapMatMesh) {
   });
 }
 
-function processCommon(listBarycentricElement, dataFieldName, objFieldName, mapMatMesh) {
+function processCommon(
+  listBarycentricElement,
+  dataFieldName,
+  objFieldName,
+  mapMatMesh
+) {
   const listElement = readData(listBarycentricElement, dataFieldName);
   listElement.forEach((obj) => {
     const parentMatMesh = mapMatMesh.get(obj.matMeshID);
     const elementMatMesh = mapMatMesh.get(obj[objFieldName]);
-  })
+  });
 }
 
 function readData(listBaryPuckering, dataFieldName) {
@@ -303,8 +293,6 @@ function readData(listBaryPuckering, dataFieldName) {
         loadedPtIndex[idx],
         loadedPtIndex[idx + 1],
         loadedPtIndex[idx + 2],
-
-
       ]);
     }
 

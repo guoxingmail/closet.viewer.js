@@ -38,9 +38,25 @@ export default class FittingSupplements {
     console.log("rootMap");
     console.log(rootMap);
 
+    const listBarycentricPrint = rootMap
+      .get("mapBarycentricPrintTexture")
+      .get("listBarycentricPrintTexture");
+    if (listBarycentricPrint)
+      processOverlayPrint(listBarycentricPrint, mapMatMesh);
+
+    const listBarycentricPuckering = rootMap
+      .get("mapBarycentricPuckering")
+      .get("listBarycentricPuckering");
+    if (listBarycentricPuckering)
+      processPuckering(listBarycentricPuckering, mapMatMesh);
+
+    const listStitch = rootMap
+      .get("mapBarycentricStitch")
+      .get("listBarycentricStitch");
+    if (listStitch) processStitch(listStitch, mapMatMesh);
+
     const listBarycentricTrim = rootMap.get("listBarycentricTrim");
-    if (listBarycentricTrim)
-      return processTrims(listBarycentricTrim, mapMatMesh, mapTransMatrix); // NOTE: RETURN FOR TEST ONLY
+    if (listBarycentricTrim) processTrims(listBarycentricTrim, mapMatMesh);
 
     const listZipper = rootMap.get("listZipper");
     if (listZipper) {

@@ -219,7 +219,7 @@ export default class Fitting {
       });
     };
 
-    parse(listChildrenTransformer3D);
+    // parse(listChildrenTransformer3D);
 
     return mapTransMatrix;
   }

@@ -1,5 +1,6 @@
-import { readByteArray } from "@/lib/clo/file/KeyValueMapReader";
+import { readByteArray, readMap } from "@/lib/clo/file/KeyValueMapReader";
 import * as THREE from "@/lib/threejs/three";
+import { loadFile } from "@/lib/clo/readers/FileLoader";
 
 export default class FittingMap {
   constructor() {
@@ -7,17 +8,56 @@ export default class FittingMap {
     // this.geometry = new THREE.Geometry();
     this.geometry = new THREE.BufferGeometry();
     this.mapChangedIndex = new Map();
+
+    // TODO: Change map to multi-map later. Map is wasting memory.
+    // this.mapVertexValue = this.mapVertexColor;
+    // this.mapVertexValue = new Map();
   }
 
   clear() {
     this.mapVertexColor.clear();
-    this.mapChangedIndex.clear();
+    // this.mapChangedIndex.clear();
   }
 
   load({ mapGeometry: mapGeometry, mapChangedIndex: mapChangedIndex }) {
     this.mapChangedIndex = mapChangedIndex;
     this.clear();
     this.extract(mapGeometry);
+  }
+
+  async loadFile(url, mapChangedIndex) {
+    this.mapChangedIndex = mapChangedIndex;
+    this.clear();
+
+    console.log("loadFile");
+    const loadedData = await loadFile(url);
+    console.log(loadedData);
+    const rootMap = readMap(new DataView(loadedData), { Offset: 0 });
+    console.log(rootMap);
+
+    const listFitMap = rootMap.get("listFitMap");
+    listFitMap.forEach((fm) => {
+      const arrMatMeshID = fm.get("listMatMeshID");
+      const baFM = fm.get("baFitmapVertexColor");
+      if (!baFM) {
+        console.log(fm);
+        return;
+      }
+      const arrVertexValue = readByteArray(
+        "Float",
+        fm.get("baFitmapVertexColor")
+      );
+      console.log("==");
+      arrMatMeshID.forEach((matMeshID) => {
+        console.log(arrVertexValue.length);
+        console.log(this.mapChangedIndex.get(matMeshID).length);
+        this.mapVertexColor.set(matMeshID, arrVertexValue);
+      });
+    });
+
+    console.log(this.mapVertexColor);
+
+    // return rootMap;
   }
 
   extract(mapInput) {
@@ -45,12 +85,15 @@ export default class FittingMap {
   }
 
   extractFitmapData(listMatShape) {
-    const vertexColor = "baFitmapVertexColor";
-    //  const vertexValue = "baFitmapVertexValue";  // NOTE: Not used yet.
+    // const vertexColor = "baFitmapVertexColor";
+    const vertexValue = "baFitmapVertexValue"; // NOTE: Not used yet.
+
+    console.log(listMatShape);
     listMatShape.forEach((matShape) => {
-      if (matShape.has(vertexColor)) {
+      if (matShape.has(vertexValue)) {
         const meshIDs = matShape.get("listMatMeshIDOnIndexedMesh");
-        const baVertexColor = readByteArray("Float", matShape.get(vertexColor));
+        const baVertexColor = readByteArray("Float", matShape.get(vertexValue));
+        console.log(baVertexColor);
         meshIDs.forEach((meshID) => {
           // NOTE: meshID is an array but might have only 1 element
           const matMeshID = meshID.get("uiMatMeshID");
@@ -60,16 +103,18 @@ export default class FittingMap {
     });
   }
 
-  createVertice(mapMatMesh) {
-    // console.log("======= create Vertice");
-    // console.log(mapMatMesh);
+  createVertices(mapMatMesh) {
+    console.log("======= create Vertices");
+    console.log(mapMatMesh);
+    console.log(this.mapVertexColor);
+    console.log(this.mapChangedIndex);
     this.mapMatMesh = mapMatMesh;
     for (const entries of this.mapVertexColor) {
       const matMeshID = entries[0];
       const arrayVertexColor = entries[1];
 
       const matMesh = mapMatMesh.get(matMeshID);
-      const colorsWithChangedIndex = this.changeVerticeIndex(
+      const colorsWithChangedIndex = this.changeVerticesIndex(
         matMeshID,
         arrayVertexColor
       );
@@ -93,9 +138,10 @@ export default class FittingMap {
     }
   }
 
-  changeVerticeIndex(matMeshID, arrayVertexColor) {
+  changeVerticesIndex(matMeshID, arrayVertexColor) {
     if (!this.mapChangedIndex.has(matMeshID)) {
       console.warn(matMeshID + " has no changed index info");
+      console.log(this.mapChangedIndex);
       return;
     }
 

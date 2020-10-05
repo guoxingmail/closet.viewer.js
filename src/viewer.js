@@ -344,31 +344,32 @@ export default class ClosetViewer {
 
       console.log("++ resizeAvatarWithAcc");
       await this.fitting.resizeAvatarWithAcc({
-        height: 178,
-        weight: 104,
+        height: 188,
+        weight: 110,
         bodyShape: 0,
       });
       console.log("-- resizeAvatarWithAcc");
 
       await this.fitting.loadGarmentData({
         garmentURL:
-          "./trims/garment.zrest",
+          "./fm/garment.zrest",
         samplingURL:
           "https://files.clo-set.com/public/fitting/5021883564f647b2813d57c7cd60b66c/1/0/sampling.json",
       });
 
       await this.fitting.drapingUsingZcrpURL({
         zcrpURL:
-        "./trims/P0_178_104.zcrp",
-        // "./trims/P0_176_62.zcrp",
+        "./fm/P0_187_101.zcrp",
       });
 
-      const supplementsURL = "./trims/supplements.map"
+      const supplementsURL = "./fm/supplements.map"
       await this.fitting.resizingSupplementsUsingURL(supplementsURL);
+
+
     };
 
     // notWorking();
-    // correctlyWorking();
+    // correctlyWorking();listZipper
     trims();
 
     // test();
@@ -809,6 +810,17 @@ export default class ClosetViewer {
     console.log("==============================");
     this.updateRenderer();
   };
+
+  // NOTE: Fitting map loader to test
+  async f(mapMatMesh) {
+    // this.loadZrestData("f1.zrest");
+    const m = this.zrest.zProperty.rootMap.get("mapGeometry");
+    const c = this.zrest.zProperty.mapChangedIndex;
+    // this.fittingMap.load({ mapGeometry: m, mapChangedIndex: c });
+    await this.fittingMap.loadFile("./fm/P0_187_101.fmap", c);
+    this.fittingMap.createVertices(mapMatMesh);
+  }
+
 
   loadZrest = async (zrestData, onProgress, colorwayIndex) => {
     const zrestItem = zrestData && zrestData.result;

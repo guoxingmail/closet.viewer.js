@@ -332,14 +332,14 @@ const splitMatShapeToMatMesh = async (
       }
     }
 
-    // TODO: 피팅맵 임시
-    if (type === MATMESH_TYPE.PATTERN_MATMESH) {
-      matMeshManager.zProperty.mapChangedIndex.set(
-        matMeshID,
-        changeVertexIndex
-      );
-      console.log(matMeshManager.zProperty.mapChangedIndex);
-    }
+    // // TODO: 피팅맵 임시
+    // if (type === MATMESH_TYPE.PATTERN_MATMESH) {
+    //   matMeshManager.zProperty.mapChangedIndex.set(
+    //     matMeshID,
+    //     changeVertexIndex
+    //   );
+    //   console.log(matMeshManager.zProperty.mapChangedIndex);
+    // }
 
     const center = new THREE.Vector3(-1, -1, -1);
     const normal = new THREE.Vector3(-1, -1, -1);

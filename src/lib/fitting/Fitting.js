@@ -84,7 +84,7 @@ export default class Fitting {
     // const m = this.zrest.zProperty.rootMap.get("mapGeometry");
     const c = this.zrest.zProperty.mapChangedIndex;
     // this.fittingMap.load({ mapGeometry: m, mapChangedIndex: c });
-    await this.fitMap.loadFile("./fm/P0_187_101.fmap", c);
+    await this.fitMap.loadFile(fitMapURL, c);
     const mapMatMesh = this.zrest.matMeshMap;
     this.fitMap.createVertices(mapMatMesh);
   }

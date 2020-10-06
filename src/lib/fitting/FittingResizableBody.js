@@ -392,6 +392,7 @@ export default class ResizableBody {
     return renderPos;
   };
 }
+
 export function getTableSize(height, weight, table) {
   if (!table) {
     console.log("No table data found");

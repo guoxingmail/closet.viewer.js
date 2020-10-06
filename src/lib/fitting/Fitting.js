@@ -1,14 +1,13 @@
 import * as THREE from "@/lib/threejs/three";
 import FittingGarment from "./FittingGarment";
 import FittingAvatar from "./FittingAvatar";
-// import ResizableBody from "./FittingResizableBody";
+import FitMap from "@/lib/fitting/FitMap";
+import FittingBodySize from "@/lib/fitting/FittingBodySize";
 import {
   loadZrestForFitting,
   processAvatarSizingFile,
   processAvatarSizingBodyFile,
 } from "./FittingIO";
-import { getTableSize } from "./FittingResizableBody";
-import FittingBodySize from "@/lib/fitting/FittingBodySize";
 
 export default class Fitting {
   constructor({ scene: scene, zrest: zrest }) {
@@ -27,6 +26,7 @@ export default class Fitting {
     this.avatar = null;
     this.garment = new FittingGarment();
     this.bodySize = new FittingBodySize();
+    this.fitMap = new FitMap();
 
     this.getZcrpFilename = this.garment.getGarmentFileName;
     this.loadZcrp = this.garment.loadZcrp;
@@ -78,6 +78,15 @@ export default class Fitting {
     });
     this.avatar.initResizableBodyWithAcc(avatarSizingInfoObj);
     this.mapHeightWeightTo5Sizes = this.avatar.resizableBody.mapHeightWeightTo5Sizes;
+  }
+
+  async loadFitMap({ fitMapURL }) {
+    // const m = this.zrest.zProperty.rootMap.get("mapGeometry");
+    const c = this.zrest.zProperty.mapChangedIndex;
+    // this.fittingMap.load({ mapGeometry: m, mapChangedIndex: c });
+    await this.fitMap.loadFile("./fm/P0_187_101.fmap", c);
+    const mapMatMesh = this.zrest.matMeshMap;
+    this.fitMap.createVertices(mapMatMesh);
   }
 
   async resizeAvatarWithAcc({

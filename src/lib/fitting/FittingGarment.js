@@ -6,7 +6,7 @@ import { loadFile, unZip } from "@/lib/clo/readers/FileLoader";
 import { readMap, readByteArray } from "@/lib/clo/file/KeyValueMapReader";
 import { getGarmentFileName } from "@/lib/clo/utils/UtilFunctions";
 import { computeBarycentric } from "./FittingBarycentricCoord";
-import FittingSupplements from "./supplements/FittingSupplements";
+import FittingSupplements from "./supplement/FittingSupplements";
 
 export default class FittingGarment {
   constructor() {
@@ -129,7 +129,7 @@ export default class FittingGarment {
 
         const index = matMesh.userData.originalIndices;
         const uv = matMesh.userData.originalUv;
-        const uv2 = matMesh.userData.originalUv2;
+        // const uv2 = matMesh.userData.originalUv2;
 
         const sorted = Array.from(index).sort((a, b) => a - b);
         const minIndex = sorted[0];

@@ -2,12 +2,12 @@ import {
   processOverlayPrint,
   processPuckering,
   processStitch,
-} from "@/lib/fitting/supplements/FittingOverrayPrint";
+} from "@/lib/fitting/supplement/FittingOverrayPrint";
 import {
   processTrims,
   processZipper,
   processButtonHead,
-} from "@/lib/fitting/supplements/FittingTrims";
+} from "@/lib/fitting/supplement/FittingTrims";
 import { loadFile, unZip } from "@/lib/clo/readers/FileLoader";
 import { readMap } from "@/lib/clo/file/KeyValueMapReader";
 

@@ -168,39 +168,15 @@ function process(matMesh, textureMatMesh, listABG, listPtIndex) {
 
   // Needs update
   textureMatMesh.geometry.attributes.position.needsUpdate = true;
-  // textureMatMesh.geometry.attributes.normal.needsUpdate = true;
-  // textureMatMesh.geometry.computeBoundingSphere();
   textureMatMesh.geometry.computeFaceNormals();
   textureMatMesh.geometry.computeVertexNormals();
-
-  // textureMatMesh.geometry.verticesNeedUpdate = true;
-  // textureMatMesh.geometry.elementsNeedUpdate = true;
-  // textureMatMesh.geometry.morphTargetsNeedUpdate = true;
-  // textureMatMesh.geometry.uvsNeedUpdate = true;
-  // textureMatMesh.geometry.normalsNeedUpdate = true;
-  // textureMatMesh.geometry.colorsNeedUpdate = true;
-  // textureMatMesh.geometry.tangentsNeedUpdate = true;
 
   // NOTE: Modules to avoid z-fighting. It works for now but could be a problem in the future.
   // textureMatMesh.material.polygonOffset = true;
   // textureMatMesh.material.polygonOffsetFactor = -1;
 
-  // FOR TEST
-  // textureMatMesh.material.uniforms.sGlobal.value = null;
-  // textureMatMesh.material.uniforms.materialBaseColor.value.y = 0;
-  // END FOR TEST
-
   textureMatMesh.material.needsUpdate = true;
   matMesh.material.needsUpdate = true;
-
-  // TODO: Remove this
-  // textureMatMesh.visible = false;
-
-  // if (bBoth) console.log(textureMatMesh.geometry);
-  // else textureMatMesh.visible = false;
-  // textureMatMesh.visible = true;
-  // matMesh.visible = true;
-  console.log(matMesh);
 }
 
 export function processPuckering(listBaryPuckering, mapMatMesh) {

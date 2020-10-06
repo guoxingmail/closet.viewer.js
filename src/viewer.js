@@ -9,7 +9,6 @@ import "@/lib/draco/DRACOLoader";
 
 import AnnotationManager from "@/lib/annotation/AnnotationManager";
 import TechPackManager from "@/lib/techPack/TechPackManager";
-import FittingMap from "@/lib/fitting/FittingMap";
 
 import RendererStats from "@xailabs/three-renderer-stats";
 import screenfull from "screenfull";
@@ -169,7 +168,6 @@ export default class ClosetViewer {
       cameraPosition: this.cameraPosition,
     });
 
-    this.fittingMap = new FittingMap();
     this.fitting = new Fitting({ scene: this.scene, zrest: this.zrest });
 
     // canvas event
@@ -813,12 +811,7 @@ export default class ClosetViewer {
 
   // NOTE: Fitting map loader to test
   async f(mapMatMesh) {
-    // this.loadZrestData("f1.zrest");
-    const m = this.zrest.zProperty.rootMap.get("mapGeometry");
-    const c = this.zrest.zProperty.mapChangedIndex;
-    // this.fittingMap.load({ mapGeometry: m, mapChangedIndex: c });
-    await this.fittingMap.loadFile("./fm/P0_187_101.fmap", c);
-    this.fittingMap.createVertices(mapMatMesh);
+    await this.fitting.loadFitMap({fitMapURL: "./fm/P0_187_101.fmap"})
   }
 
 

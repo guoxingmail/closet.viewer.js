@@ -20,7 +20,7 @@ uniform bool bUseSeamPuckeringNormal;
 uniform bool bUseTransparent;
 uniform bool bUseGlossinessMap;
 uniform bool bUseMetalnessMap;
-uniform bool bUseFittingMap;
+uniform bool bUseFitMap;
 //uniform bool bUseAmbientOcclusion;
 
 uniform mat4 matGlobal;
@@ -441,7 +441,7 @@ void main( void )
     gl_FragColor.rgb = Tonemapping(gl_FragColor.rgb);
     gl_FragColor.a = materialOpacity * texAlpha;
 
-    if (bUseFittingMap) {
+    if (bUseFitMap) {
         if (fittingColor.r * fittingColor.g * fittingColor.b >= 0.0) {
             gl_FragColor.rgb = (gl_FragColor.rgb * 0.3 + fittingColor.rgb * 0.7);
             gl_FragColor.a = 0.5;

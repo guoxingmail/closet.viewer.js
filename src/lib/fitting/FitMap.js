@@ -1,11 +1,10 @@
-import { readByteArray, readMap } from "@/lib/clo/file/KeyValueMapReader";
 import * as THREE from "@/lib/threejs/three";
+import { readByteArray, readMap } from "@/lib/clo/file/KeyValueMapReader";
 import { loadFile } from "@/lib/clo/readers/FileLoader";
 
-export default class FittingMap {
+export default class FitMap {
   constructor() {
     this.mapVertexColor = new Map();
-    // this.geometry = new THREE.Geometry();
     this.geometry = new THREE.BufferGeometry();
     this.mapChangedIndex = new Map();
 
@@ -19,7 +18,7 @@ export default class FittingMap {
     // this.mapChangedIndex.clear();
   }
 
-  load({ mapGeometry: mapGeometry, mapChangedIndex: mapChangedIndex }) {
+  init({ mapGeometry: mapGeometry, mapChangedIndex: mapChangedIndex }) {
     this.mapChangedIndex = mapChangedIndex;
     this.clear();
     this.extract(mapGeometry);
@@ -47,10 +46,9 @@ export default class FittingMap {
         "Float",
         fm.get("baFitmapVertexColor")
       );
-      console.log("==");
       arrMatMeshID.forEach((matMeshID) => {
-        console.log(arrVertexValue.length);
-        console.log(this.mapChangedIndex.get(matMeshID).length);
+        // console.log(arrVertexValue.length);
+        // console.log(this.mapChangedIndex.get(matMeshID).length);
         this.mapVertexColor.set(matMeshID, arrVertexValue);
       });
     });
@@ -78,13 +76,13 @@ export default class FittingMap {
         }
         const listMatShape = element.get("listMatShape");
         if (listMatShape) {
-          this.extractFitmapData(listMatShape);
+          this.extractFitMapData(listMatShape);
         }
       });
     }
   }
 
-  extractFitmapData(listMatShape) {
+  extractFitMapData(listMatShape) {
     // const vertexColor = "baFitmapVertexColor";
     const vertexValue = "baFitmapVertexValue"; // NOTE: Not used yet.
 
@@ -131,7 +129,7 @@ export default class FittingMap {
         colors,
         colors.length
       );
-      matMesh.material.uniforms.bUseFittingMap = {
+      matMesh.material.uniforms.bUseFitMap = {
         type: "i",
         value: 1,
       };
@@ -149,7 +147,8 @@ export default class FittingMap {
     const arrayChangedIndex = this.mapChangedIndex.get(matMeshID);
 
     for (let index = 0; index < arrayChangedIndex.length; ++index) {
-      const changedIndex = arrayChangedIndex[index];
+      // const changedIndex = arrayChangedIndex[index];
+      const changedIndex = index;
       for (let i = 0; i < 4; ++i) {
         const scaledIdx = changedIndex * 4 + i;
         colors[scaledIdx] =

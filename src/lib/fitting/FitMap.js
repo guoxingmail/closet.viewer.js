@@ -6,62 +6,60 @@ export default class FitMap {
   constructor() {
     this.mapVertexColor = new Map();
     this.geometry = new THREE.BufferGeometry();
-    // this.mapChangedIndex = new Map();
-
-    // TODO: Change map to multi-map later. Map is wasting memory.
-    // this.mapVertexValue = this.mapVertexColor;
-    // this.mapVertexValue = new Map();
   }
 
-  clear() {
-    this.mapVertexColor.clear();
-    this.geometry.dispose();
-    // this.mapChangedIndex.clear();
-  }
-
-  init({
-    mapGeometry: mapGeometry,
-    // mapChangedIndex: mapChangedIndex,
-    mapMatMesh,
-  }) {
-    // this.mapChangedIndex = mapChangedIndex;
+  async open({ url, mapMatMesh }) {
+    this.clear();
     this.mapMatMesh = mapMatMesh;
-    this.clear();
-    this.extract(mapGeometry);
-  }
 
-  async loadFile(url, mapChangedIndex) {
-    // this.mapChangedIndex = mapChangedIndex;
-    this.clear();
-
-    console.log("loadFile");
-    const loadedData = await loadFile(url);
-    console.log(loadedData);
-    const rootMap = readMap(new DataView(loadedData), { Offset: 0 });
-    console.log(rootMap);
+    // Load file the parse
+    const rootMap = await this.loadThenParse(url);
 
     const listFitMap = rootMap.get("listFitMap");
     listFitMap.forEach((fm) => {
       const arrMatMeshID = fm.get("listMatMeshID");
-      const baFM = fm.get("baFitmapVertexColor");
-      if (!baFM) {
-        console.log(fm);
+      if (!fm.has("baFitmapVertexColor")) {
+        console.warn("WARNING: baFitmapVertexColor not found.");
         return;
       }
+
       const arrVertexValue = readByteArray(
         "Float",
         fm.get("baFitmapVertexColor")
       );
       arrMatMeshID.forEach((matMeshID) => {
-        // console.log(arrVertexValue.length);
-        // console.log(this.mapChangedIndex.get(matMeshID).length);
         this.mapVertexColor.set(matMeshID, arrVertexValue);
       });
     });
 
-    console.log(this.mapVertexColor);
+    this.createVertexColor();
+  }
 
-    // return rootMap;
+  clear() {
+    this.mapVertexColor.clear();
+    this.geometry.dispose();
+  }
+
+  async loadThenParse(url) {
+    const loadedData = await loadFile(url);
+    return readMap(new DataView(loadedData), { Offset: 0 });
+  }
+
+  createVertexColor() {
+    for (const entries of this.mapVertexColor) {
+      const matMeshID = entries[0];
+      const arrVertexColor = entries[1];
+
+      const matMesh = this.mapMatMesh.get(matMeshID);
+      const arrRGBA = Float32Array.from(arrVertexColor);
+
+      const geometry = matMesh.geometry;
+      // NOTE: vFittingColor is used by shaders to render fit map.
+      geometry.addAttribute(
+        "vFittingColor",
+        new THREE.BufferAttribute(arrRGBA, 4)
+      );
+    }
   }
 
   setVisible(bVisible) {
@@ -76,6 +74,7 @@ export default class FitMap {
         return;
       }
 
+      // Set visible for the shader
       matMesh.material.uniforms.bUseFitMap = {
         type: "i",
         value: iVisible,
@@ -83,63 +82,52 @@ export default class FitMap {
     }
   }
 
-  extract(mapInput) {
+  // TODO: Delete the comment below after QA
+  /*
+  // Parse the information to render a fit map from mapGeometry of ZRest.
+  parseMapGeometry(mapGeometry) {
+    const fieldKey = "listChildrenTransformer3D";
+
     const shouldRecursive = (element) => {
       return (
         element instanceof Map &&
-        element.has("listChildrenTransformer3D") &&
-        element.get("listChildrenTransformer3D") != null
+        element.has(fieldKey) &&
+        element.get(fieldKey) != null
       );
     };
 
-    if (shouldRecursive(mapInput)) {
-      this.extract(mapInput.get("listChildrenTransformer3D"));
+    if (shouldRecursive(mapGeometry)) {
+      this.parseMapGeometry(mapGeometry.get(fieldKey));
     } else {
-      mapInput.forEach((element) => {
+      mapGeometry.forEach((element) => {
         if (shouldRecursive(element)) {
-          this.extract(element);
+          this.parseMapGeometry(element);
         }
         const listMatShape = element.get("listMatShape");
         if (listMatShape) {
-          this.extractFitMapData(listMatShape);
+          this.extractFitMapDataFromMatShape(listMatShape);
         }
       });
     }
   }
 
-  extractFitMapData(listMatShape) {
-    // const vertexColor = "baFitmapVertexColor";
-    const vertexValue = "baFitmapVertexValue"; // NOTE: Not used yet.
+  extractFitMapDataFromMatShape(listMatShape) {
+    // NOTE: vertexValue consists of RGBA list. (E.g. RGBARGBARGBA....)
+    // TODO: Ask to change field Key Fitmap to FitMap
+    const fieldKey = "baFitmapVertexValue";
 
-    console.log(listMatShape);
     listMatShape.forEach((matShape) => {
-      if (matShape.has(vertexValue)) {
-        const meshIDs = matShape.get("listMatMeshIDOnIndexedMesh");
-        const baVertexColor = readByteArray("Float", matShape.get(vertexValue));
-        console.log(baVertexColor);
-        meshIDs.forEach((meshID) => {
-          // NOTE: meshID is an array but might have only 1 element
+      if (matShape.has(fieldKey)) {
+        const listMeshID = matShape.get("listMatMeshIDOnIndexedMesh");
+        const baVertexColor = readByteArray("Float", matShape.get(fieldKey));
+
+        // NOTE: meshID is an array but might have only 1 element.
+        listMeshID.forEach((meshID) => {
           const matMeshID = meshID.get("uiMatMeshID");
           this.mapVertexColor.set(matMeshID, baVertexColor);
         });
       }
     });
   }
-
-  createVertices(mapMatMesh) {
-    this.mapMatMesh = mapMatMesh;
-    for (const entries of this.mapVertexColor) {
-      const matMeshID = entries[0];
-      const arrVertexColor = entries[1];
-
-      const matMesh = mapMatMesh.get(matMeshID);
-      const arrRGBA = Float32Array.from(arrVertexColor);
-
-      const geometry = matMesh.geometry;
-      geometry.addAttribute(
-        "vFittingColor",
-        new THREE.BufferAttribute(arrRGBA, 4)
-      );
-    }
-  }
+   */
 }

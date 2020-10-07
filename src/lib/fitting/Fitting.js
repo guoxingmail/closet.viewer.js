@@ -80,13 +80,11 @@ export default class Fitting {
     this.mapHeightWeightTo5Sizes = this.avatar.resizableBody.mapHeightWeightTo5Sizes;
   }
 
-  async loadFitMap({ fitMapURL }) {
-    // const m = this.zrest.zProperty.rootMap.get("mapGeometry");
-    const c = this.zrest.zProperty.mapChangedIndex;
-    // this.fittingMap.load({ mapGeometry: m, mapChangedIndex: c });
-    await this.fitMap.loadFile(fitMapURL, c);
+  async loadFitMap({ fitMapURL, bVisible = true }) {
     const mapMatMesh = this.zrest.matMeshMap;
-    this.fitMap.createVertices(mapMatMesh);
+
+    await this.fitMap.open({ url: fitMapURL, mapMatMesh: mapMatMesh });
+    this.fitMap.setVisible(bVisible);
   }
 
   async resizeAvatarWithAcc({

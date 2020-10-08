@@ -6,6 +6,10 @@ export default class FitMap {
   constructor() {
     this.mapVertexColor = new Map();
     this.geometry = new THREE.BufferGeometry();
+
+    this.open = this.open.bind(this);
+    this.setOpacity = this.setOpacity.bind(this);
+    this.setVisible = this.setVisible.bind(this);
   }
 
   async open({ url, mapMatMesh }) {
@@ -53,33 +57,41 @@ export default class FitMap {
       const matMesh = this.mapMatMesh.get(matMeshID);
       const arrRGBA = Float32Array.from(arrVertexColor);
 
-      const geometry = matMesh.geometry;
-      // NOTE: vFittingColor is used by shaders to render fit map.
-      geometry.addAttribute(
-        "vFittingColor",
-        new THREE.BufferAttribute(arrRGBA, 4)
-      );
+      if (!matMesh) {
+        console.warn("WARNING: MatMeshID(" + matMeshID + ") not found.");
+        // return;
+      } else {
+        const geometry = matMesh.geometry;
+        // NOTE: vFittingColor is used by shaders to render fit map.
+        geometry.addAttribute(
+          "vFittingColor",
+          new THREE.BufferAttribute(arrRGBA, 4)
+        );
+      }
     }
   }
 
-  setVisible(bVisible) {
-    const iVisible = bVisible ? 1 : 0;
+  setOpacity(bOpacity) {
+    this.loopToSet("bUseFitMapOpacity", bOpacity);
+  }
 
+  loopToSet(key, bValue) {
+    const iValue = bValue ? 1 : 0;
     for (const entries of this.mapVertexColor) {
       const matMeshID = entries[0];
       const matMesh = this.mapMatMesh.get(matMeshID);
 
       if (!matMesh) {
         console.warn("WARNING: MatMeshID(" + matMeshID + ") not found.");
-        return;
+      } else {
+        const uniforms = matMesh.material.uniforms;
+        uniforms[key].value = iValue;
       }
-
-      // Set visible for the shader
-      matMesh.material.uniforms.bUseFitMap = {
-        type: "i",
-        value: iVisible,
-      };
     }
+  }
+
+  setVisible(bVisible) {
+    this.loopToSet("bUseFitMap", bVisible);
   }
 
   // TODO: Delete the comment below after QA

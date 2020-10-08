@@ -80,10 +80,11 @@ export default class Fitting {
     this.mapHeightWeightTo5Sizes = this.avatar.resizableBody.mapHeightWeightTo5Sizes;
   }
 
-  async loadFitMap({ fitMapURL, bVisible = true }) {
+  async loadFitMap({ fitMapURL, bVisible = true, bOpacity = true }) {
     const mapMatMesh = this.zrest.matMeshMap;
 
     await this.fitMap.open({ url: fitMapURL, mapMatMesh: mapMatMesh });
+    this.fitMap.setOpacity(bOpacity);
     this.fitMap.setVisible(bVisible);
   }
 

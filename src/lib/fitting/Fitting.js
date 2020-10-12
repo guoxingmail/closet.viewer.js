@@ -150,7 +150,13 @@ export default class Fitting {
     this.avatar.resizeAccessory();
   }
 
-  async loadGarmentData({ garmentURL, samplingURL, onProgress, onLoad, garmentColorwayIndex }) {
+  async loadGarmentData({
+    garmentURL,
+    samplingURL,
+    onProgress,
+    onLoad,
+    garmentColorwayIndex,
+  }) {
     console.log("+ loadGarment");
     await this.loadGarment({
       url: garmentURL,
@@ -184,6 +190,7 @@ export default class Fitting {
     // TODO: Error when calling repeatedly. Fix it.
     // this.zrest.clear();
     await loadZrestForFitting({
+      url,
       funcOnProgress: onProgress,
       funcOnLoad: onLoad,
       zrest: this.zrest,

@@ -102,6 +102,7 @@ export async function loadZrestForFitting({
   funcOnProgress: onProgress,
   funcOnLoad: onLoad,
   zrest: zrest,
+  colorwayIndex,
   // parentContainer: container,
   isAvatar: isAvatar = false,
 }) {
@@ -123,20 +124,23 @@ export async function loadZrestForFitting({
     if (zrest !== undefined) {
       zrest.clearMaps();
     }
-    // zrest.addThreeContainerUniquely(new THREE.Object3D(), "fittingContainer");
+
     if (isAvatar)
       zrest.addThreeContainerUniquely(
         object,
         "fittingAvatarContainer",
         "fittingContainer"
       );
-    // ainerUniquely(object, "fittingAvatar", "fittingContainer");
-    else
+    else {
+      if (colorwayIndex > -1) {
+        await zrest.changeColorway(colorwayIndex);
+      }
       zrest.addThreeContainerUniquely(
         object,
         "fittingGarmentContainer",
         "fittingContainer"
       );
+    }
 
     if (onLoad) onLoad(this);
 

@@ -144,9 +144,14 @@ export default class Fitting {
     this.avatar.resizeAccessory();
   }
 
-  async loadGarmentData({ garmentURL, samplingURL }) {
+  async loadGarmentData({ garmentURL, samplingURL, garmentColorwayIndex }) {
     console.log("+ loadGarment");
-    await this.loadGarment({ url: garmentURL, onProgress: null, onLoad: null });
+    await this.loadGarment({
+      url: garmentURL,
+      onProgress: null,
+      onLoad: null,
+      colorwayIndex: garmentColorwayIndex,
+    });
     console.log("- loadGarment");
 
     this.garment.init({
@@ -169,14 +174,15 @@ export default class Fitting {
     console.log("- loadSamplingJson");
   }
 
-  async loadGarment({ url, onProgress, onLoad }) {
+  async loadGarment({ url, colorwayIndex, onProgress, onLoad }) {
     // TODO: Error when calling repeatedly. Fix it.
     // this.zrest.clear();
     await loadZrestForFitting({
-      url: url,
-      // funcOnProgress: onProgress,
-      // funcOnLoad: onLoad,
+      url,
+      funcOnProgress: onProgress,
+      funcOnLoad: onLoad,
       zrest: this.zrest,
+      colorwayIndex,
       isAvatar: false,
     });
   }

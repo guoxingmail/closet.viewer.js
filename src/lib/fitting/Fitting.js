@@ -46,9 +46,15 @@ export default class Fitting {
     this.loadDrapingDataFromURL = this.garment.loadDrapingDataFromURL;
   }
 
-  async loadResizableAvatar({ avatarURL, sizingURL, accURL }) {
+  async loadResizableAvatar({
+    avatarURL,
+    sizingURL,
+    accURL,
+    onProgress,
+    onLoad,
+  }) {
     console.log("\t++loadAvatar");
-    await this.loadAvatar({ url: avatarURL });
+    await this.loadAvatar({ url: avatarURL, onProgress, onLoad });
     console.log("\t--loadAvatar");
     console.log("\t++loadAvatarResizingData");
     await this.loadAvatarResizingDataWithAcc({ sizingURL, accURL });
@@ -144,12 +150,12 @@ export default class Fitting {
     this.avatar.resizeAccessory();
   }
 
-  async loadGarmentData({ garmentURL, samplingURL, garmentColorwayIndex }) {
+  async loadGarmentData({ garmentURL, samplingURL, onProgress, onLoad, garmentColorwayIndex }) {
     console.log("+ loadGarment");
     await this.loadGarment({
       url: garmentURL,
-      onProgress: null,
-      onLoad: null,
+      onProgress,
+      onLoad,
       colorwayIndex: garmentColorwayIndex,
     });
     console.log("- loadGarment");
@@ -178,7 +184,6 @@ export default class Fitting {
     // TODO: Error when calling repeatedly. Fix it.
     // this.zrest.clear();
     await loadZrestForFitting({
-      url,
       funcOnProgress: onProgress,
       funcOnLoad: onLoad,
       zrest: this.zrest,

@@ -216,11 +216,5 @@ function getClosestSize(inputHeight, inputWeight, samplingConfiguration) {
 
 export function getGarmentFileName(height, weight, samplingConfiguration) {
   var closestSize = getClosestSize(height, weight, samplingConfiguration);
-  return (
-    "P0_" +
-    String(closestSize.height) +
-    "_" +
-    String(closestSize.weight) +
-    ".zcrp"
-  );
+  return "P0_" + String(closestSize.height) + "_" + String(closestSize.weight);
 }

@@ -96,7 +96,7 @@ export default class ClosetViewer {
     // create webgl renderer
     this.renderer = new THREE.WebGLRenderer({
       antialias: true,
-      // preserveDrawingBuffer: true,
+      preserveDrawingBuffer: true,
       alpha: true,
       stencil: false,
       powerPreference: "high-performance",

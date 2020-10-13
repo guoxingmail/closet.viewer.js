@@ -519,17 +519,26 @@
       console.log(closet.viewer.getCameraMatrix())
     }
 
-    function printButtons(array, elementId, funcName) {
+    function printButtons(array, elementId, funcName, color = []) {
       document.getElementById(elementId).innerHTML = "";
       for (let i = 0; i < array.length; ++i) {
-        document.getElementById(elementId).innerHTML += "<button type='button' onclick='" + funcName + "(" + array[i] + ")' class='mini ui button'>" + array[i] + "</button>";
+        const c = (color[i] != 'undefined') ? "(" + color[i] + ")" : "";
+        document.getElementById(elementId).innerHTML += "<button type='button' onclick='" + funcName + "(" + array[i] + ")' class='mini ui button'>" + array[i] + c + "</button>";
       }
     }
 
     let matMeshMap = new Map;
     function loadMatMesh() {
       matMeshMap = closet.viewer.zrest.matMeshMap;
-      printButtons([...matMeshMap.keys()], 'matMeshID', 'setMatMeshVisible');
+      const l = [];
+      const c = [];
+
+      matMeshMap.forEach((v, k) => {
+        l.push(k);
+        c.push(v.userData.TYPE);
+      });
+      printButtons(l, 'matMeshID', 'setMatMeshVisible', c);
+      // printButtons([...matMeshMap.keys()], 'matMeshID', 'setMatMeshVisible');
     }
 
     function loadFabrics() {

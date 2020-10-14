@@ -1,4 +1,5 @@
 import * as THREE from "@/lib/threejs/three";
+import { MATMESH_TYPE } from "@/lib/clo/readers/predefined";
 import { readByteArray, readMap } from "@/lib/clo/file/KeyValueMapReader";
 import { loadFile } from "@/lib/clo/readers/FileLoader";
 
@@ -73,6 +74,17 @@ export default class FitMap {
   }
 
   setVisible(bVisible) {
+    this.mapMatMesh.forEach((matMesh) => {
+      const type = matMesh.userData.TYPE;
+      const isSupplement =
+        MATMESH_TYPE.isGarment(type) && type !== MATMESH_TYPE.PATTERN_MATMESH;
+
+      // NOTE: Supplements should not appear when rendering the fit map.
+      if (isSupplement) {
+        matMesh.visible = !bVisible;
+      }
+    });
+
     this.loopToSet("bUseFitMap", bVisible);
   }
 

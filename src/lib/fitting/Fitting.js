@@ -3,11 +3,7 @@ import FittingGarment from "./FittingGarment";
 import FittingAvatar from "./FittingAvatar";
 import FitMap from "@/lib/fitting/FitMap";
 import FittingBodySize from "@/lib/fitting/FittingBodySize";
-import {
-  loadZrestForFitting,
-  processAvatarSizingFile,
-  processAvatarSizingBodyFile,
-} from "./FittingIO";
+import { loadZrestForFitting, processAvatarSizingFile } from "./FittingIO";
 
 export default class Fitting {
   constructor({ scene: scene, zrest: zrest }) {
@@ -86,10 +82,16 @@ export default class Fitting {
     this.mapHeightWeightTo5Sizes = this.avatar.resizableBody.mapHeightWeightTo5Sizes;
   }
 
-  async loadFitMap({ fitMapURL, bVisible = true, bOpacity = true }) {
+  async loadFitMap({
+    fitMapURL,
+    bVisible = true,
+    bOpacity = true,
+    opacityValue = 0.5,
+  }) {
     const mapMatMesh = this.zrest.matMeshMap;
 
     await this.fitMap.open({ url: fitMapURL, mapMatMesh: mapMatMesh });
+    this.fitMap.setOpacityValue(opacityValue);
     this.fitMap.setOpacity(bOpacity);
     this.fitMap.setVisible(bVisible);
   }
@@ -211,12 +213,11 @@ export default class Fitting {
     const mapTransMatrix = this.buildMapTransform3DMatrix(
       this.zrest.zProperty.rootMap
     );
-    const testOnly = await this.garment.resizingSupplement(
+    await this.garment.resizingSupplement(
       supplementsURL,
       mapMatMesh,
       mapTransMatrix
     );
-    // this.zrest.scene.add(testOnly);
   }
 
   buildMapTransform3DMatrix(rootMap) {
@@ -245,7 +246,7 @@ export default class Fitting {
       });
     };
 
-    // parse(listChildrenTransformer3D);
+    parse(listChildrenTransformer3D);
 
     return mapTransMatrix;
   }

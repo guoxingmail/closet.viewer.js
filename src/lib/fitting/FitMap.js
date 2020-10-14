@@ -10,6 +10,7 @@ export default class FitMap {
 
     this.open = this.open.bind(this);
     this.setOpacity = this.setOpacity.bind(this);
+    this.setOpacityValue = this.setOpacityValue.bind(this);
     this.setVisible = this.setVisible.bind(this);
   }
 
@@ -70,7 +71,11 @@ export default class FitMap {
   }
 
   setOpacity(bOpacity) {
-    this.loopToSet("bUseFitMapOpacity", bOpacity);
+    this.loopToSet("bUseFitMapOpacity", bOpacity ? 1 : 0);
+  }
+
+  setOpacityValue(opacityValue) {
+    this.loopToSet("fOpacityValue", opacityValue);
   }
 
   setVisible(bVisible) {
@@ -85,11 +90,11 @@ export default class FitMap {
       }
     });
 
-    this.loopToSet("bUseFitMap", bVisible);
+    this.loopToSet("bUseFitMap", bVisible ? 1 : 0);
   }
 
-  loopToSet(key, bValue) {
-    const iValue = bValue ? 1 : 0;
+  loopToSet(key, value) {
+    // const iValue = bValue ? 1 : 0;
 
     this.mapVertexColor.forEach((v, matMeshID) => {
       const matMesh = this.mapMatMesh.get(matMeshID);
@@ -97,7 +102,7 @@ export default class FitMap {
         console.warn("WARNING: MatMeshID(" + matMeshID + ") not found.");
       } else {
         const uniforms = matMesh.material.uniforms;
-        uniforms[key].value = iValue;
+        uniforms[key].value = value;
       }
     });
   }

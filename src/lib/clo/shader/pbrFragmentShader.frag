@@ -22,6 +22,7 @@ uniform bool bUseGlossinessMap;
 uniform bool bUseMetalnessMap;
 uniform bool bUseFitMap;
 uniform bool bUseFitMapOpacity;
+uniform float fOpacityValue;
 //uniform bool bUseAmbientOcclusion;
 
 uniform mat4 matGlobal;
@@ -446,7 +447,7 @@ void main( void )
     if (bUseFitMap) {
         if (fittingColor.r * fittingColor.g * fittingColor.b >= 0.0) {
             gl_FragColor.rgb = (gl_FragColor.rgb * 0.3 + fittingColor.rgb * 0.7);
-            gl_FragColor.a = (bUseFitMapOpacity) ? fittingColor.a : 1.0;
+            gl_FragColor.a = (bUseFitMapOpacity) ? fOpacityValue : 1.0;
         }
     } 
 }

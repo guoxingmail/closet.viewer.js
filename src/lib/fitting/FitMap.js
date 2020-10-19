@@ -59,13 +59,13 @@ export default class FitMap {
         return;
       }
 
-      const arrRGBA = Float32Array.from(listVertexColor);
+      const listRGB = Float32Array.from(listVertexColor);
       const geometry = matMesh.geometry;
 
       // NOTE: vFittingColor is used by shaders to render fit map.
       geometry.addAttribute(
         "vFittingColor",
-        new THREE.BufferAttribute(arrRGBA, 4)
+        new THREE.BufferAttribute(listRGB, 3)
       );
     });
   }

@@ -23,41 +23,27 @@ export function processOverlayPrint(listPrintTextureBarycentric, mapMatMesh) {
   listPrintTexture.forEach((obj) => {
     const listParentMatMeshID = obj.listParentMatMeshID;
     const renderType = obj.renderType;
-
-    const parentMatMesh = mapMatMesh.get(listParentMatMeshID[0]);
     const textureMatMesh = mapMatMesh.get(obj.elementMatMeshID);
 
-    if (renderType === RENDER_TYPE.BOTH_SIDE) {
-      const frontMatMeshID = Math.min(...listParentMatMeshID);
-      const backMatMeshID = Math.max(...listParentMatMeshID);
-      const textureMatMesh = mapMatMesh.get(obj.elementMatMeshID);
-
-      process(
-        mapMatMesh.get(frontMatMeshID),
-        textureMatMesh,
-        obj.listABG,
-        obj.listPtIndex,
-        false
-      );
-
-      process(
-        mapMatMesh.get(backMatMeshID),
-        textureMatMesh,
-        obj.listABG,
-        obj.listPtIndex,
-        true
-      );
-    } else {
-      const parentMatMesh = mapMatMesh.get(listParentMatMeshID[0]);
-      const textureMatMesh = mapMatMesh.get(obj.elementMatMeshID);
-
+    const executeProcess = (parentMatMesh, bSecondHalf = false) => {
       process(
         parentMatMesh,
         textureMatMesh,
         obj.listABG,
         obj.listPtIndex,
-        false
+        bSecondHalf
       );
+    };
+
+    if (renderType === RENDER_TYPE.BOTH_SIDE) {
+      const frontMatMeshID = Math.min(...listParentMatMeshID);
+      const backMatMeshID = Math.max(...listParentMatMeshID);
+
+      executeProcess(mapMatMesh.get(frontMatMeshID), false);
+      executeProcess(mapMatMesh.get(backMatMeshID), true);
+    } else {
+      const parentMatMesh = mapMatMesh.get(listParentMatMeshID[0]);
+      executeProcess(parentMatMesh, false);
     }
   });
 }
@@ -74,7 +60,6 @@ function process(
   const texMeshPos = textureMatMesh.geometry.attributes.position.array;
   const texMeshPosCount = textureMatMesh.geometry.attributes.position.count;
   const meshPos = matMesh.geometry.attributes.position.array;
-
   const bBothSide = texMeshPosCount / 2 === listABG.length;
 
   const updateTexPos = () => {
@@ -93,9 +78,6 @@ function process(
       const beta = getPos(listPtIndex[i][1]).multiplyScalar(listABG[i].b);
       const gamma = getPos(listPtIndex[i][2]).multiplyScalar(listABG[i].g);
 
-      // const gamma = getPos(listPtIndex[i][1]).multiplyScalar(listABG[i].b);
-      // const beta = getPos(listPtIndex[i][2]).multiplyScalar(listABG[i].g);
-
       const idx = bSecondHalf ? i + texMeshPosCount / 2 : i;
       texMeshPos[idx * 3] = alpha.x + beta.x + gamma.x;
       texMeshPos[idx * 3 + 1] = alpha.y + beta.y + gamma.y;
@@ -103,10 +85,34 @@ function process(
     }
   };
 
+  // NOTE:
+  // This module used to test only
+  //
+  // SW에서는 matShape 단위로 계산하기 때문에 back-face에 붙일 때는 normal을 뒤집기 위해 index를 조정해야 했음
+  // 여기에서는 matMesh를 앞뒤옆 3개로 따로 생성하기 때문에 이러한 작업이 필요하지 않음
+  const flipNormal = () => {
+    const index = textureMatMesh.geometry.index.array;
+    const reIndex = [];
+
+    for (let i = 0; i < index.length; ++i) {
+      if (i % 3 === 1) {
+        reIndex[i + 1] = index[i];
+      } else if (i % 3 === 2) {
+        reIndex[i - 1] = index[i];
+      } else {
+        reIndex[i] = index[i];
+      }
+    }
+    textureMatMesh.geometry.setIndex(reIndex);
+    textureMatMesh.geometry.index.needsUpdate = true;
+  };
+
   updateTexPos();
+  // flipNormal();
 
   // Needs update
   textureMatMesh.geometry.attributes.position.needsUpdate = true;
+  textureMatMesh.geometry.attributes.uv.needsUpdate = true;
   textureMatMesh.geometry.computeFaceNormals();
   textureMatMesh.geometry.computeVertexNormals();
 
@@ -118,9 +124,6 @@ export function processPuckering(listBaryPuckering, mapMatMesh) {
   console.log("processPuckering");
   if (!listBaryPuckering || !mapMatMesh) return;
 
-  // TODO: Test only
-  // mapMatMesh.forEach((matMesh) => (matMesh.visible = false));
-
   console.log(listBaryPuckering);
   const listPuckering = readData(listBaryPuckering, "uiPuckeringMatMeshID");
   console.log(listPuckering);
@@ -129,12 +132,8 @@ export function processPuckering(listBaryPuckering, mapMatMesh) {
     const matMeshID = obj.matMeshID;
     const matMesh = mapMatMesh.get(matMeshID);
     const textureMatMesh = mapMatMesh.get(obj.printTextureMatMeshID);
-    // console.log(textureMatMesh);
 
     process(matMesh, textureMatMesh, obj.listABG, obj.listPtIndex);
-
-    // console.log(textureMatMesh);
-    // textureMatMesh.visible = true;
   });
 }
 
@@ -142,24 +141,15 @@ export function processStitch(listBaryStitch, mapMatMesh) {
   console.log("processStitch");
   if (!listBaryStitch || !mapMatMesh) return;
 
-  // TODO: Test only
-  // mapMatMesh.forEach((matMesh) => (matMesh.visible = false));
-
   console.log(listBaryStitch);
   const listPuckering = readData(listBaryStitch, "uiStitchMatMeshID");
   console.log(listPuckering);
 
   listPuckering.forEach((obj) => {
-    // const matMesh = mapMatMesh.get(obj.matMeshID);
-    // const textureMatMesh = mapMatMesh.get(obj.printTextureMatMeshID);
-
     const textureMatMesh = mapMatMesh.get(obj.matMeshID);
     const matMesh = mapMatMesh.get(obj.printTextureMatMeshID);
 
     process(matMesh, textureMatMesh, obj.listABG, obj.listPtIndex);
-
-    // console.log(textureMatMesh);
-    // textureMatMesh.visible = true;
   });
 }
 
@@ -194,14 +184,12 @@ function readData(listData, dataFieldName) {
     }
 
     // Extract data
-    const obj = new Object();
     const renderType = element.has("iRenderType")
       ? element.get("iRenderType")
       : -1;
 
     const getParentMatMeshID = (dataFieldName, renderType) => {
       if (renderType > -1) {
-        console.log(renderType);
         switch (renderType) {
           case RENDER_TYPE.FRONT_SIDE_ONLY:
             return [element.get("uiFrontPatternMatMeshID")];
@@ -218,9 +206,9 @@ function readData(listData, dataFieldName) {
       }
     };
     const listParentMatMeshID = getParentMatMeshID(dataFieldName, renderType);
-    console.log(listParentMatMeshID);
     const elementMatMeshID = element.get(dataFieldName);
 
+    const obj = {};
     obj["listParentMatMeshID"] = listParentMatMeshID;
     obj["elementMatMeshID"] = elementMatMeshID;
     obj["listABG"] = listABG;

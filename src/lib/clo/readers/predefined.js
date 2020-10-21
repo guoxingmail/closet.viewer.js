@@ -48,6 +48,10 @@ const MATMESH_TYPE = {
   isGarment: function (type) {
     return type !== this.AVATAR_MATMESH;
   },
+
+  isSupplement: function (type) {
+    return type !== this.AVATAR_MATMESH && type !== this.PATTERN_MATMESH;
+  },
 };
 
 export { TEXTURE_TYPE, RENDER_FACE_TYPE, MATMESH_TYPE };

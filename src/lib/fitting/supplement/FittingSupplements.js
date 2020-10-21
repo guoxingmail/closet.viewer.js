@@ -10,6 +10,7 @@ import {
 } from "@/lib/fitting/supplement/FittingTrims";
 import { loadFile, unZip } from "@/lib/clo/readers/FileLoader";
 import { readMap } from "@/lib/clo/file/KeyValueMapReader";
+import { MATMESH_TYPE } from "@/lib/clo/readers/predefined";
 
 export default class FittingSupplements {
   constructor(zrest) {
@@ -32,11 +33,31 @@ export default class FittingSupplements {
     console.log("FittingSupplements load complete");
   }
 
-  async test(supplementsFile, mapMatMesh, mapTransMatrix) {
+  cleanUp(mapMatMesh) {
+    console.log("cleanUp");
+    mapMatMesh.forEach((matMesh) => {
+      const type = matMesh.userData.TYPE;
+      if (MATMESH_TYPE.isSupplement(type)) {
+        matMesh.geometry.index.array = matMesh.userData.originalIndices;
+        matMesh.geometry.attributes.position.array =
+          matMesh.userData.originalPos;
+        matMesh.geometry.attributes.uv.array = matMesh.userData.originalUv;
+        matMesh.geometry.attributes.position.array =
+          matMesh.userData.originalPos;
+        matMesh.geometry.computeFaceNormals();
+        matMesh.geometry.computeVertexNormals();
+        matMesh.userData.isCleanedUp = true;
+      }
+    });
+  }
+
+  async test(supplementsFile, mapMatMesh) {
     const rootMap = await this.load(supplementsFile);
 
     console.log("rootMap");
     console.log(rootMap);
+
+    this.cleanUp(mapMatMesh);
 
     const listBarycentricPrint = rootMap
       .get("mapBarycentricPrintTexture")

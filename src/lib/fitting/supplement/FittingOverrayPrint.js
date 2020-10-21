@@ -1,6 +1,12 @@
 import * as THREE from "@/lib/threejs/three";
 import { readByteArray } from "@/lib/clo/file/KeyValueMapReader";
 
+const RENDER_TYPE = {
+  FRONT_SIDE_ONLY: 1,
+  BACK_SIDE_ONLY: 2,
+  BOTH_SIDE: 0,
+};
+
 export function processOverlayPrint(listPrintTextureBarycentric, mapMatMesh) {
   console.log("processOverlayPrint");
   if (!listPrintTextureBarycentric || !mapMatMesh) return;
@@ -15,165 +21,94 @@ export function processOverlayPrint(listPrintTextureBarycentric, mapMatMesh) {
   console.log(listPrintTexture);
 
   listPrintTexture.forEach((obj) => {
-    const parentMatMeshID = obj.parentMatMeshID;
-    const parentMatMesh = mapMatMesh.get(parentMatMeshID);
+    const listParentMatMeshID = obj.listParentMatMeshID;
+    const renderType = obj.renderType;
 
-    // if (matMesh) {
-    //   console.log(matMesh);
-    //   matMesh.visible = false;
-    // }
+    const parentMatMesh = mapMatMesh.get(listParentMatMeshID[0]);
     const textureMatMesh = mapMatMesh.get(obj.elementMatMeshID);
-    // console.log(textureMatMesh);
 
-    process(parentMatMesh, textureMatMesh, obj.listABG, obj.listPtIndex);
+    if (renderType === RENDER_TYPE.BOTH_SIDE) {
+      const frontMatMeshID = Math.min(...listParentMatMeshID);
+      const backMatMeshID = Math.max(...listParentMatMeshID);
+      const textureMatMesh = mapMatMesh.get(obj.elementMatMeshID);
 
-    // console.log(textureMatMesh);
-    // textureMatMesh.visible = true;
+      process(
+        mapMatMesh.get(frontMatMeshID),
+        textureMatMesh,
+        obj.listABG,
+        obj.listPtIndex,
+        false
+      );
+
+      process(
+        mapMatMesh.get(backMatMeshID),
+        textureMatMesh,
+        obj.listABG,
+        obj.listPtIndex,
+        true
+      );
+    } else {
+      const parentMatMesh = mapMatMesh.get(listParentMatMeshID[0]);
+      const textureMatMesh = mapMatMesh.get(obj.elementMatMeshID);
+
+      process(
+        parentMatMesh,
+        textureMatMesh,
+        obj.listABG,
+        obj.listPtIndex,
+        false
+      );
+    }
   });
 }
-//
-// function readData(listPrintTextureBarycentric) {
-//   const listPrintTexture = [];
-//
-//   listPrintTextureBarycentric.forEach((element) => {
-//     // TODO: Ask to change the data type from byte to int
-//     const matMeshID = parseInt(
-//       readByteArray("String", element.get("patternMatMeshID"))
-//     );
-//     const printTextureMatMeshID = parseInt(
-//       readByteArray("String", element.get("printTextureMatMeshID"))
-//     );
-//     const listIndex = readByteArray("Uint", element.get("baIndices"));
-//     const loadedABG = readByteArray("Float", element.get("baAbgs"));
-//     const loadedPtIndex = readByteArray("Uint", element.get("baPtIndices"));
-//
-//     const listABG = [];
-//     const listPtIndex = [];
-//
-//     // Parse data
-//     for (let i = 0; i < listIndex.length; ++i) {
-//       const idx = i * 3;
-//
-//       const ABG = new Object({
-//         a: loadedABG[idx],
-//         b: loadedABG[idx + 1],
-//         g: loadedABG[idx + 2],
-//       });
-//       listABG.push(ABG);
-//
-//       listPtIndex.push([
-//         loadedPtIndex[idx],
-//         loadedPtIndex[idx + 1],
-//         loadedPtIndex[idx + 2],
-//       ]);
-//     }
-//
-//     const obj = new Object();
-//     obj["matMeshID"] = matMeshID;
-//     obj["printTextureMatMeshID"] = printTextureMatMeshID;
-//     obj["listABG"] = listABG;
-//     obj["listIndex"] = listIndex;
-//     obj["listPtIndex"] = listPtIndex;
-//
-//     listPrintTexture.push(obj);
-//   });
-//
-//   return listPrintTexture;
-// }
 
-function process(matMesh, textureMatMesh, listABG, listPtIndex) {
+function process(
+  matMesh,
+  textureMatMesh,
+  listABG,
+  listPtIndex,
+  bSecondHalf = false
+) {
   if (!matMesh) return;
 
-  const vertexCount = textureMatMesh.geometry.attributes.position.count;
   const texMeshPos = textureMatMesh.geometry.attributes.position.array;
+  const texMeshPosCount = textureMatMesh.geometry.attributes.position.count;
   const meshPos = matMesh.geometry.attributes.position.array;
-  // const uv = matMesh.geometry.attributes.uv.array;
 
-  const bBoth = vertexCount / 2 === listABG.length;
+  const bBothSide = texMeshPosCount / 2 === listABG.length;
 
-  // if (vertexCount !== listABG.length || vertexCount !== listPtIndex.length) {
-  //   console.log("Warning: Invalid data");
-  //   console.log({
-  //     pos: texMeshPos,
-  //     listAGB: listABG,
-  //     listPtIndex: listPtIndex,
-  //   });
-  //   console.log(matMesh);
-  //   return;
-  // } else {
-  //   console.log("ok");
-  //   console.log({
-  //     pos: texMeshPos,
-  //     listAGB: listABG,
-  //     listPtIndex: listPtIndex,
-  //   });
-  // }
+  const updateTexPos = () => {
+    const getPos = (idx) => {
+      return new THREE.Vector3(
+        meshPos[idx * 3],
+        meshPos[idx * 3 + 1],
+        meshPos[idx * 3 + 2]
+      );
+    };
 
-  const getPos = (idx) => {
-    // if (idx * 3 > meshPos.length) console.log(idx);
+    const loopFinish = bBothSide ? texMeshPosCount / 2 : texMeshPosCount;
 
-    return new THREE.Vector3(
-      meshPos[idx * 3],
-      meshPos[idx * 3 + 1],
-      meshPos[idx * 3 + 2]
-    );
+    for (let i = 0; i < loopFinish; ++i) {
+      const alpha = getPos(listPtIndex[i][0]).multiplyScalar(listABG[i].a);
+      const beta = getPos(listPtIndex[i][1]).multiplyScalar(listABG[i].b);
+      const gamma = getPos(listPtIndex[i][2]).multiplyScalar(listABG[i].g);
+
+      // const gamma = getPos(listPtIndex[i][1]).multiplyScalar(listABG[i].b);
+      // const beta = getPos(listPtIndex[i][2]).multiplyScalar(listABG[i].g);
+
+      const idx = bSecondHalf ? i + texMeshPosCount / 2 : i;
+      texMeshPos[idx * 3] = alpha.x + beta.x + gamma.x;
+      texMeshPos[idx * 3 + 1] = alpha.y + beta.y + gamma.y;
+      texMeshPos[idx * 3 + 2] = alpha.z + beta.z + gamma.z;
+    }
   };
 
-  if (bBoth) console.log("bBoth: " + matMesh.userData.MATMESH_ID);
-
-  const end = bBoth ? vertexCount / 2 : vertexCount;
-  console.log("end: " + end);
-
-  // for (let i = 0; i < vertexCount; i += 100) {
-  for (let i = 0; i < end; ++i) {
-    // console.log(i, listPtIndex[i]);
-    const step1 = getPos(listPtIndex[i][0]).multiplyScalar(listABG[i].a);
-    const step2 = getPos(listPtIndex[i][1]).multiplyScalar(listABG[i].b);
-    const step3 = getPos(listPtIndex[i][2]).multiplyScalar(listABG[i].g);
-
-    texMeshPos[i * 3] = step1.x + step2.x + step3.x;
-    texMeshPos[i * 3 + 1] = step1.y + step2.y + step3.y;
-    texMeshPos[i * 3 + 2] = step1.z + step2.z + step3.z;
-
-    // if (bBoth) {
-    //   const idx = i + vertexCount / 2;
-    //   texMeshPos[idx * 3] = step1.x + step2.x + step3.x;
-    //   texMeshPos[idx * 3 + 1] = step1.y + step2.y + step3.y;
-    //   texMeshPos[idx * 3 + 2] = step1.z + step2.z + step3.z;
-    // }
-  }
-
-  if (bBoth) {
-    const index = textureMatMesh.geometry.index.array;
-    const frontVertexCnt = vertexCount / 2;
-    const frontIdxCnt = index.length / 2;
-
-    for (let i = frontIdxCnt; i < index.length; ++i) {
-      const idx = frontVertexCnt + index[i - frontIdxCnt];
-
-      if (i % 3 === 1) {
-        // console.log(index[i + 1], idx);
-        index[i + 1] = idx;
-      } else if (i % 3 === 2) {
-        // console.log(index[i - 1], idx);
-        index[i - 1] = idx;
-      } else {
-        // console.log(index[i], idx);
-        index[i] = idx;
-      }
-    }
-
-    textureMatMesh.geometry.index.needsUpdate = true;
-  }
+  updateTexPos();
 
   // Needs update
   textureMatMesh.geometry.attributes.position.needsUpdate = true;
   textureMatMesh.geometry.computeFaceNormals();
   textureMatMesh.geometry.computeVertexNormals();
-
-  // NOTE: Modules to avoid z-fighting. It works for now but could be a problem in the future.
-  // textureMatMesh.material.polygonOffset = true;
-  // textureMatMesh.material.polygonOffsetFactor = -1;
 
   textureMatMesh.material.needsUpdate = true;
   matMesh.material.needsUpdate = true;
@@ -228,25 +163,11 @@ export function processStitch(listBaryStitch, mapMatMesh) {
   });
 }
 
-function processCommon(
-  listBarycentricElement,
-  dataFieldName,
-  objFieldName,
-  mapMatMesh
-) {
-  const listElement = readData(listBarycentricElement, dataFieldName);
-  listElement.forEach((obj) => {
-    const parentMatMesh = mapMatMesh.get(obj.matMeshID);
-    const elementMatMesh = mapMatMesh.get(obj[objFieldName]);
-  });
-}
+function readData(listData, dataFieldName) {
+  const listResult = [];
 
-function readData(listBaryPuckering, dataFieldName) {
-  const retList = [];
-
-  listBaryPuckering.forEach((element) => {
-    const parentMatMeshID = element.get("uiPatternMatMeshID");
-    const elementMatMeshID = element.get(dataFieldName);
+  // Parse Data
+  listData.forEach((element) => {
     const listIndex = readByteArray("Uint", element.get("baIndices"));
     const loadedABG = readByteArray("Float", element.get("baAbgs"));
     const loadedPtIndex = readByteArray("Uint", element.get("baPtIndices"));
@@ -254,7 +175,7 @@ function readData(listBaryPuckering, dataFieldName) {
     const listABG = [];
     const listPtIndex = [];
 
-    // Parse data
+    // Re-index ABG and PtIndex
     for (let i = 0; i < listIndex.length; ++i) {
       const idx = i * 3;
 
@@ -272,15 +193,43 @@ function readData(listBaryPuckering, dataFieldName) {
       ]);
     }
 
+    // Extract data
     const obj = new Object();
-    obj["parentMatMeshID"] = parentMatMeshID;
+    const renderType = element.has("iRenderType")
+      ? element.get("iRenderType")
+      : -1;
+
+    const getParentMatMeshID = (dataFieldName, renderType) => {
+      if (renderType > -1) {
+        console.log(renderType);
+        switch (renderType) {
+          case RENDER_TYPE.FRONT_SIDE_ONLY:
+            return [element.get("uiFrontPatternMatMeshID")];
+          case RENDER_TYPE.BACK_SIDE_ONLY:
+            return [element.get("uiBackPatternMatMeshID")];
+          case RENDER_TYPE.BOTH_SIDE:
+            return [
+              element.get("uiFrontPatternMatMeshID"),
+              element.get("uiBackPatternMatMeshID"),
+            ];
+        }
+      } else {
+        return [element.get("uiPatternMatMeshID")];
+      }
+    };
+    const listParentMatMeshID = getParentMatMeshID(dataFieldName, renderType);
+    console.log(listParentMatMeshID);
+    const elementMatMeshID = element.get(dataFieldName);
+
+    obj["listParentMatMeshID"] = listParentMatMeshID;
     obj["elementMatMeshID"] = elementMatMeshID;
     obj["listABG"] = listABG;
     obj["listIndex"] = listIndex;
     obj["listPtIndex"] = listPtIndex;
+    obj["renderType"] = renderType;
 
-    retList.push(obj);
+    listResult.push(obj);
   });
 
-  return retList;
+  return listResult;
 }

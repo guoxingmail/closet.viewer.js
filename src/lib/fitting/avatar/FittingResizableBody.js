@@ -1,10 +1,10 @@
 ﻿import * as THREE from "@/lib/threejs/three";
 import { readByteArray } from "@/lib/clo/file/KeyValueMapReader";
-import { buildMapMatshapeRenderToSkinPos } from "./FittingUtil";
+import { buildMapMatshapeRenderToSkinPos } from "../common/FittingUtil";
 import {
   MEASUREMENT_LIST_NAME,
   AVATAR_GENDER,
-} from "@/lib/fitting/FittingConst";
+} from "@/lib/fitting/avatar/FittingConst";
 
 // baseMeshMap은 MVMap
 // convertinMatData 는 float array

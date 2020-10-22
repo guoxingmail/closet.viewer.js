@@ -1,8 +1,8 @@
 import * as THREE from "@/lib/threejs/three";
 import { readByteArray } from "@/lib/clo/file/KeyValueMapReader";
-import { computeBarycentric } from "@/lib/fitting/FittingBarycentricCoord";
-import { convertFloatArrayToVec3Array } from "@/lib/fitting/FittingIO";
-import { buildMapMatshapeRenderToSkinPos } from "./FittingUtil";
+import { computeBarycentric } from "@/lib/fitting/common/FittingBarycentricCoord";
+import { convertFloatArrayToVec3Array } from "@/lib/fitting/common/FittingIO";
+import { buildMapMatshapeRenderToSkinPos } from "../common/FittingUtil";
 
 export default class FittingAccessory {
   constructor(listSkinController, scManager) {

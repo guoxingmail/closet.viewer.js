@@ -1,9 +1,8 @@
 import * as THREE from "@/lib/threejs/three";
 import { readByteArray } from "@/lib/clo/file/KeyValueMapReader";
-import FittingSkinControllerManager from "@/lib/fitting/FittingSkinControllerManager";
-import ResizableBody from "@/lib/fitting/FittingResizableBody";
-// import Accessory from "@/lib/fitting/FittingAccessory";
-import FittingAccessory from "@/lib/fitting/FittingAccessory";
+import FittingSkinControllerManager from "@/lib/fitting/avatar/FittingSkinControllerManager";
+import ResizableBody from "@/lib/fitting/avatar/FittingResizableBody";
+import FittingAccessory from "@/lib/fitting/avatar/FittingAccessory";
 
 export default class FittingAvatar {
   constructor(container, zrest) {

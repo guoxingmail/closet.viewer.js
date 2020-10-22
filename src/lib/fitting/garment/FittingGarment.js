@@ -5,8 +5,8 @@ import { loadJson } from "@/lib/clo/readers/FileLoader";
 import { loadFile, unZip } from "@/lib/clo/readers/FileLoader";
 import { readMap, readByteArray } from "@/lib/clo/file/KeyValueMapReader";
 import { getGarmentFileName } from "@/lib/clo/utils/UtilFunctions";
-import { computeBarycentric } from "./FittingBarycentricCoord";
-import FittingSupplements from "./supplement/FittingSupplements";
+import { computeBarycentric } from "../common/FittingBarycentricCoord";
+import FittingSupplements from "./FittingSupplements";
 
 export default class FittingGarment {
   constructor() {

@@ -1,5 +1,5 @@
-import { processAvatarSizingBodyFile } from "@/lib/fitting/FittingIO";
-import { getTableSize } from "@/lib/fitting/FittingResizableBody";
+import { processAvatarSizingBodyFile } from "@/lib/fitting/common/FittingIO";
+import { getTableSize } from "@/lib/fitting/avatar/FittingResizableBody";
 
 export default class FittingBodySize {
   constructor() {

@@ -1,9 +1,12 @@
 import * as THREE from "@/lib/threejs/three";
-import FittingGarment from "./FittingGarment";
-import FittingAvatar from "./FittingAvatar";
-import FitMap from "@/lib/fitting/FitMap";
-import FittingBodySize from "@/lib/fitting/FittingBodySize";
-import { loadZrestForFitting, processAvatarSizingFile } from "./FittingIO";
+import FittingGarment from "./garment/FittingGarment";
+import FittingAvatar from "./avatar/FittingAvatar";
+import FitMap from "@/lib/fitting/common/FitMap";
+import FittingBodySize from "@/lib/fitting/common/FittingBodySize";
+import {
+  loadZrestForFitting,
+  processAvatarSizingFile,
+} from "./common/FittingIO";
 
 export default class Fitting {
   constructor({ scene: scene, zrest: zrest }) {

@@ -7,17 +7,9 @@ import FittingAccessory from "@/lib/fitting/avatar/FittingAccessory";
 export default class FittingAvatar {
   constructor(container, zrest) {
     this.parentContainer = container;
-    this.zrest = zrest;
-
-    // NOTE: This is named "list" but actually a map. This name according to the CLO SW.
-    // this.listSkinController = new Map();
-
-    // NOTE: This map is created by parsing the listSkinController.
-    //       Keys are the name of the SkinController. After creating this map, listSkinController is deallocated from memory.
-    // this.mapSkinController = new Map();
-
     this.avatarContainer = null;
 
+    this.zrest = zrest;
     this.accessory = null;
     this.resizableBody = null;
     this.scManager = null;
@@ -123,7 +115,7 @@ export default class FittingAvatar {
       );
       console.log("\t\t++" + partName);
       // console.log(v);
-      this.resizableBody.scManager.putVertexOnMatMeshByPartName(
+      this.resizableBody.scManager.putVertexOntoMatMeshByPartName(
         partName,
         partRenderPos
       );

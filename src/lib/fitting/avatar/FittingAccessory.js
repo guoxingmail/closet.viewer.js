@@ -91,7 +91,7 @@ export default class FittingAccessory {
         phyPosVec3,
         renderToSkinPos
       );
-      const listMatMesh = this.scManager.putVertexOnMatMeshByPartName(
+      const listMatMesh = this.scManager.putVertexOntoMatMeshByPartName(
         partName,
         renderPos
       );
@@ -102,7 +102,7 @@ export default class FittingAccessory {
 
   updateRenderPositionFromPhysical(phyPos, renderToSkinPos) {
     const renderPos = new Array(renderToSkinPos.length * 3).fill(-999.999);
-    const multifier = 1.0;
+    const multiplier = 1.0;
 
     for (let i = 0; i < renderPos.length; ++i) {
       const vectorIdx = Math.trunc(i / 3);
@@ -121,11 +121,11 @@ export default class FittingAccessory {
           renderPos[i] = renderVector.z;
           break;
       }
-      renderPos[i] *= multifier;
+      renderPos[i] *= multiplier;
     }
 
     renderPos.forEach((pos) => {
-      if (pos == -999.999) console.warn(pos);
+      if (pos === -999.999) console.warn(pos);
     });
 
     return renderPos;
@@ -219,14 +219,12 @@ export default class FittingAccessory {
     return this.buildMesh(bufferGeometry);
   }
 
+  // NOTE: This module used to test only
   buildMesh(bufferGeometry, material = null) {
-    // NOTE: This module used to test only
     const defaultMaterial = new THREE.MeshPhongMaterial({});
     defaultMaterial.color = THREE.Vector3(1, 1, 1);
 
     const threeMaterial = material ? material : defaultMaterial;
-    const threeMesh = new THREE.Mesh(bufferGeometry, threeMaterial);
-
-    return threeMesh;
+    return new THREE.Mesh(bufferGeometry, threeMaterial);
   }
 }

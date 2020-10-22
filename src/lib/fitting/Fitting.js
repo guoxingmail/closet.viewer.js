@@ -18,9 +18,7 @@ export default class Fitting {
     this.processAvatarSizingFile = processAvatarSizingFile;
     this.mapHeightWeightTo5Sizes = null;
 
-    this.avatarId = 0;
-    this.avatarSkinType = 0;
-
+    // Interfaces
     this.zrest = zrest;
     this.avatar = null;
     this.garment = new FittingGarment();
@@ -214,9 +212,5 @@ export default class Fitting {
   async resizingSupplementsUsingURL(supplementsURL) {
     const mapMatMesh = this.zrest.matMeshMap;
     await this.garment.resizingSupplement(supplementsURL, mapMatMesh);
-  }
-
-  convertCLOMatrixToThree(matrixFromCLO) {
-    return new THREE.Matrix4().fromArray(Object.values(matrixFromCLO));
   }
 }

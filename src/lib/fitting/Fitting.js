@@ -210,45 +210,7 @@ export default class Fitting {
 
   async resizingSupplementsUsingURL(supplementsURL) {
     const mapMatMesh = this.zrest.matMeshMap;
-    const mapTransMatrix = this.buildMapTransform3DMatrix(
-      this.zrest.zProperty.rootMap
-    );
-    await this.garment.resizingSupplement(
-      supplementsURL,
-      mapMatMesh,
-      mapTransMatrix
-    );
-  }
-
-  buildMapTransform3DMatrix(rootMap) {
-    console.log(rootMap);
-    const mapTransMatrix = new Map();
-    const listChildrenTransformer3D = rootMap
-      .get("mapGeometry")
-      .get("listChildrenTransformer3D");
-    const idenMatrix = new THREE.Matrix4().identity();
-
-    const parse = (listTF3D, parentMatrix) => {
-      const multiMatrix = parentMatrix || idenMatrix;
-
-      listTF3D.forEach((tf) => {
-        const childListTF3D = tf.get("listChildrenTransformer3D");
-        const LtoW = this.convertCLOMatrixToThree(tf.get("m4LtoW")).multiply(
-          multiMatrix
-        );
-        const m4Matrix = this.convertCLOMatrixToThree(tf.get("m4Matrix"));
-        const transID = tf.get("uiID");
-
-        if (childListTF3D) {
-          parse(childListTF3D, LtoW);
-        }
-        mapTransMatrix.set(transID, { LtoW: LtoW, matrix: m4Matrix });
-      });
-    };
-
-    parse(listChildrenTransformer3D);
-
-    return mapTransMatrix;
+    await this.garment.resizingSupplement(supplementsURL, mapMatMesh);
   }
 
   convertCLOMatrixToThree(matrixFromCLO) {

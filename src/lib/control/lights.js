@@ -16,7 +16,7 @@ export function addLightForOldVersion(scene) {
 
   const DirLight1 = new THREE.DirectionalLight(0x6e6e6e);
   DirLight1.position.set(1500, 3000, 1500);
-  DirLight1.castShadow = mobileDetect.os() === "iOS" ? false : true;
+  DirLight1.castShadow = mobileDetect.os() !== "iOS";
 
   // set up shadow properties for the light
   DirLight1.shadow.mapSize.width = 2048; // default

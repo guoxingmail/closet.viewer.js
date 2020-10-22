@@ -17,7 +17,7 @@ export default class Colorway {
 
     this.zProperty.colorwayIndex = colorwayIndex;
 
-    if (this.zProperty.bDisassembled) {
+    if (this.zProperty.bSeparate) {
       await this.changeColorwayForSeparatedZRest();
     } else {
       await this.changeColorwayForUnifiedZRest({ jsZip: jsZip });
@@ -38,7 +38,7 @@ export default class Colorway {
       return false;
     }
 
-    const isUnifiedZRest = !this.zProperty.bDisassembled;
+    const isUnifiedZRest = !this.zProperty.bSeparate;
     const hasJSZip = jsZip !== undefined && jsZip !== null;
     if (isUnifiedZRest && !hasJSZip) {
       console.warn("jsZip missing");

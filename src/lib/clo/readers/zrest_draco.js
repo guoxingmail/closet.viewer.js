@@ -33,8 +33,7 @@ const getDracoGeometry = async (
     return drcArrayBuffer;
   };
 
-  // console.log(this.zProperty.bDisassembled);
-  const drcArrayBuffer = matMeshManager.zProperty.bDisassembled
+  const drcArrayBuffer = matMeshManager.zProperty.bSeparate
     ? await getFromMapDracoData()
     : await getFromJSZip();
 
@@ -120,9 +119,6 @@ const splitMatShapeToMatMesh = async (
 ) => {
   const zrestVersion = matMeshManager.zProperty.version;
   let indexOffset = zrestVersion > 4 ? 0 : totalIdxCount;
-
-  const combinedVertice = [];
-  // const combinedIndex = [];
 
   for (let m = 0; m < listIdxCount.length; ++m) {
     if (zrestVersion <= 4) {
@@ -548,7 +544,3 @@ export const createMatMesh = async (
 
   await Promise.all(newListMatShape);
 };
-
-function setOriginalInfo() {}
-
-// function set

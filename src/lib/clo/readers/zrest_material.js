@@ -53,7 +53,7 @@ export async function makeMaterial({
   // NOTE: index is one of texture list. this value only zero now.
   const threeJSMaterial = attachShaderMaterial(drawMode, version);
 
-  if (zProperty.bDisassembled) {
+  if (zProperty.bSeparate) {
     const listTexture = await loadTextureDisassembly({
       matProperty: matProperty,
       zrestProperty: zProperty,

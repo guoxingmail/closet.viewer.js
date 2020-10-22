@@ -15,7 +15,6 @@ export default class MeshFactory {
     materialInformationMap: materialInformationMap,
     camera: loadedCamera,
     zrestProperty: zrestProperty,
-    zrestElement: zrestElement,
   }) {
     this.matMeshMap = matMeshMap;
     this.materialList = [];
@@ -23,29 +22,21 @@ export default class MeshFactory {
     this.materialInformationMap = materialInformationMap;
     this.camera = loadedCamera;
     this.zProperty = zrestProperty;
-    // this.zElement = zrestElement;
-    // this.drawMode = zrestProperty.drawMode;
     this.colorwaySize = this.zProperty.colorwaySize;
 
     this.rootMap = new Map();
 
     this.zProperty.matMeshMap = this.matMeshMap;
     this.zProperty.matShapeMap = this.matShapeMap;
-    // this.zElement.matMeshMap = this.matMeshMap;
-    // this.zElement.matShapeMap = this.matShapeMap;
 
     this.matmeshManager = new MatMeshManager({
-      // matMeshMap: this.matMeshMap,
-      // matShapeMap: this.matShapeMap,
       materialInformationMap: this.materialInformationMap,
       camera: this.camera,
       zrestProperty: this.zProperty,
-      // zrestElement: this.zElement
-      // drawMode: this.drawMode
     });
   }
 
-  buildRest = (rootMap, loadedCamera) => {
+  buildRest = (rootMap) => {
     const parseMapColorWay = () => {
       const mapColorway = rootMap.get("mapColorWay");
       if (mapColorway !== undefined) {
@@ -268,6 +259,7 @@ export default class MeshFactory {
       const colorwayIndex = this.zProperty.colorwayIndex;
       // console.log(this.zProperty);
       // console.log(colorwayIndex);
+      console.log("\tGetMatMeshes loop 1")
       // 불투명 부터 추가해서 불투명 object 부터 그리기
       let tf = await this.matmeshManager.getMatMeshs(
         zrestLoader,
@@ -281,6 +273,7 @@ export default class MeshFactory {
       if (zrestLoader.aborted) return;
       retObject.add(tf);
 
+      console.log("\tGetMatMeshes loop 2")
       // 투명한것 추가
       tf = await this.matmeshManager.getMatMeshs(
         zrestLoader,
@@ -295,8 +288,10 @@ export default class MeshFactory {
       retObject.add(tf);
     };
 
+    console.log("\tBuildRest")
     this.buildRest(rootMap, loadedCamera);
 
+    console.log("\tParseMapGeometry")
     await parseMapGeometry();
     this.matShapeMap = this.matmeshManager.matShapeMap;
 
@@ -466,7 +461,7 @@ export default class MeshFactory {
     const bMetal = source.get("bMetal");
 
     // metalness 는 m_bMetal 에 의해 지배되고 있음. bMetal은 없어졌지만 기존 버전 호환을 위해 필요함.
-    if (bMetal !== undefined && bMetal == false) {
+    if (bMetal !== undefined && bMetal === false) {
       material.metalness = 0.0;
     }
 
@@ -476,7 +471,7 @@ export default class MeshFactory {
     material.cameraLightIntensity = source.get("fCameraLightIntensity");
 
     // velvet
-    if (material.materialType == 6) {
+    if (material.materialType === 6) {
       material.environmentLightIntensity = 0.0;
       material.cameraLightIntensity = 0.7;
     }
@@ -509,8 +504,8 @@ export default class MeshFactory {
     // silk satin 의 specular color(여기서는 reflection color) 적용하기. 여기 바뀌면 CLO에서도 바꿔 줘야 한다.
     // silk & satin
     if (
-      material.bUseMetalnessRoughnessPBR == false &&
-      material.materialType == 5
+      material.bUseMetalnessRoughnessPBR === false &&
+      material.materialType === 5
     ) {
       material.reflectionColor.x =
         material.reflectionIntensity * (material.base.x + 0.1); // 하얀색 하이라이트가 약하니 0.1 더해준다.

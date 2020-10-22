@@ -18,39 +18,12 @@ import MeshFactory from "./MeshFactory";
 import Wireframe from "./Wireframe";
 
 import { getObjectsCenter, zoomToObjects } from "./ObjectUtils";
-import { makeMaterial } from "./zrest_material";
-import Colorway, { changeColorway } from "./Colorway";
+import Colorway from "./Colorway";
 import { safeDeallocation } from "@/lib/clo/readers/MemoryUtils";
 import { loadFile, unZip } from "@/lib/clo/readers/FileLoader";
 import { getFilename } from "@/lib/clo/readers/FileLoader";
 
 const zrestProperty = {};
-// const zrestProperty = {
-//   version: -1,
-//   drawMode: {
-//     wireframe: {
-//       pattern: false,
-//       // button: false
-//     },
-//   },
-//   colorwayIndex: -1,
-//   colorwaySize: 0,
-//   bDisassembled: false,
-
-//   // global variable
-//   nameToTextureMap: new Map(),
-//   loadedCamera: {
-//     ltow: new THREE.Matrix4(),
-//     bLoaded: false,
-//   },
-//   renderCamera: null,
-
-//   // zElement
-//   rootMap: new Map(),
-//   seamPuckeringNormalMap: null,
-//   listMapTextureMatMeshId: null,
-//   mapMatMeshIndex: new Map(),
-// };
 
 let _fileReaderSyncSupport = false;
 const _syncDetectionScript =
@@ -105,8 +78,8 @@ export default class ZRestLoader {
 
     this.MATMESH_TYPE = MATMESH_TYPE;
 
-    this.isDisassembled = () => {
-      return this.zProperty.bDisassembled;
+    this.isSeparate = () => {
+      return this.zProperty.bSeparate;
     };
 
     this.safeDeallocation = safeDeallocation;
@@ -120,20 +93,6 @@ export default class ZRestLoader {
     console.log("ZRestLoader initialized.");
   }
 
-  // TODO: This wrapper function placed very temporarily.
-  // makeMaterialForZRest = async (zip, matProperty, colorwayIndex, bUseSeamPuckeringNormalMap, camera) => {
-  //   zrestProperty.colorwayIndex = colorwayIndex;
-  //   zrestProperty.bUseSeamPuckeringNormalMap = zrestProperty;
-  //   //zrestProperty.loadedCamera = camera;
-
-  //   return await makeMaterial({
-  //     jsZip: zip,
-  //     matProperty: matProperty,
-  //     zProperty: zrestProperty,
-  //     bUseSeamPuckeringNormalMap: bUseSeamPuckeringNormalMap
-  //   });
-  // };
-
   initZrestProperty = () => {
     const zProperty = {
       version: -1,
@@ -145,7 +104,7 @@ export default class ZRestLoader {
       },
       colorwayIndex: -1,
       colorwaySize: 0,
-      bDisassembled: false,
+      bSeparate: false,
 
       // global variable
       nameToTextureMap: new Map(),
@@ -204,7 +163,7 @@ export default class ZRestLoader {
   };
 
   loadOnly = (url, onProgress) => {
-    zrestProperty.bDisassembled = false;
+    zrestProperty.bSeparate = false;
     const loader = new THREE.FileLoader(this.manager);
     loader.setResponseType("arraybuffer");
 
@@ -214,7 +173,7 @@ export default class ZRestLoader {
   };
 
   load = (url, onLoad, onProgress, onError) => {
-    zrestProperty.bDisassembled = false;
+    zrestProperty.bSeparate = false;
     const loader = new THREE.FileLoader(this.manager);
     loader.setResponseType("arraybuffer");
     // loader.loadZrest(url, onLoad, onProgress, onError);
@@ -229,7 +188,7 @@ export default class ZRestLoader {
   };
 
   loadUrl = (url, onLoad, onProgress, onError) => {
-    zrestProperty.bDisassembled = false;
+    zrestProperty.bSeparate = false;
 
     const loader = new THREE.FileLoader(this.manager);
     loader.setResponseType("arraybuffer");
@@ -241,7 +200,7 @@ export default class ZRestLoader {
           resolve();
         },
         onProgress,
-        reject
+        onError
       );
     });
   };
@@ -337,9 +296,9 @@ export default class ZRestLoader {
         return extension === "rest";
       });
 
-      // Uncompress zip (restFile)
+      // Decompress zip (restFile)
       const restContent = await zip.file(restFileName).async("arrayBuffer");
-      this.parseRestContents(object3D, restContent, zip);
+      await this.parseRestContents(object3D, restContent, zip);
     };
 
     reader.readAsArrayBuffer(contentBlob);
@@ -481,15 +440,6 @@ export default class ZRestLoader {
     // Build list for pattern measurement
     this.listPatternMeasure = rootMap.get("listPatternMeasure");
 
-    // console.log("==========================");
-    // console.log("zrest load complete");
-    // console.log(this.cameraPosition);
-    // console.log(this.zProperty.loadedCamera);
-    // console.log("==========================");
-
-    // if (this.zProperty.loadedCamera) {
-    //   this.camera.position.copy(this.zProperty.loadedCamera);
-    // }
 
     // add 할때 cameraPosition 이 있으면 설정해준다.
     if (this.cameraPosition) {
@@ -599,7 +549,7 @@ export default class ZRestLoader {
     console.log("processTextureFiles done.");
   };
 
-  loadZrestDisassembly = async (
+  loadSeparateZrest = async (
     restURL,
     dracoURLList,
     textureURLList,
@@ -615,7 +565,7 @@ export default class ZRestLoader {
       return await this.loadTextureFromURL(seamPuckeringMapURL[0]);
     };
 
-    this.zProperty.bDisassembled = true;
+    this.zProperty.bSeparate = true;
 
     const object3D = this.rootObject;
     // const object3D = new THREE.Object3D();

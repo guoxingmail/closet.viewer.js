@@ -118,6 +118,10 @@ function process(
 
   textureMatMesh.material.needsUpdate = true;
   matMesh.material.needsUpdate = true;
+
+  // NOTE: Modules to avoid z-fighting. It works for now but could be a problem in the future.
+  textureMatMesh.material.polygonOffset = true;
+  textureMatMesh.material.polygonOffsetFactor = -1;
 }
 
 export function processPuckering(listBaryPuckering, mapMatMesh) {

@@ -4,9 +4,9 @@ import * as THREE from "@/lib/threejs/three";
 import { loadJson } from "@/lib/clo/readers/FileLoader";
 import { loadFile, unZip } from "@/lib/clo/readers/FileLoader";
 import { readMap, readByteArray } from "@/lib/clo/file/KeyValueMapReader";
-import { getGarmentFileName } from "@/lib/clo/utils/UtilFunctions";
 import { computeBarycentric } from "../common/FittingBarycentricCoord";
 import FittingSupplements from "./FittingSupplements";
+import { getGarmentFileName } from "@/lib/fitting/common/FittingUtil";
 
 export default class FittingGarment {
   constructor() {

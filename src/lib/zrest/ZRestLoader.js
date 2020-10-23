@@ -11,15 +11,15 @@ import {
   extractTexture,
   getTexture,
   setTexturePropertyDisassembly,
-} from "./TextureManager";
+} from "./builder/ZRestTextureManager";
 
-import { MATMESH_TYPE } from "@/lib/clo/readers/Predefined";
-import MeshFactory from "./MeshFactory";
-import Wireframe from "./Wireframe";
+import { MATMESH_TYPE } from "@/lib/zrest/common/ZRestConst";
+import ZRestMeshFactory from "./builder/ZRestMeshFactory";
+import ZRestWireframe from "./interface/ZRestWireframe";
 
-import { getObjectsCenter, zoomToObjects } from "./ObjectUtils";
-import Colorway from "./Colorway";
-import { safeDeallocation } from "@/lib/clo/readers/MemoryUtils";
+import { getObjectsCenter, zoomToObjects } from "../fitting/common/ObjectUtils";
+import ZRestColorway from "./interface/ZRestColorway";
+import { safeDeallocation } from "@/lib/fitting/common/MemoryUtils";
 import { loadFile, unZip } from "@/lib/clo/readers/FileLoader";
 import { getFilename } from "@/lib/clo/readers/FileLoader";
 
@@ -56,7 +56,7 @@ export default class ZRestLoader {
     this.listPatternMeasure = [];
     this.materialInformationMap = new Map();
 
-    this.meshFactory = new MeshFactory({
+    this.meshFactory = new ZRestMeshFactory({
       matMeshMap: this.matMeshMap,
       matShapeMap: this.matShapeMap,
       materialInformationMap: this.materialInformationMap,
@@ -64,13 +64,13 @@ export default class ZRestLoader {
       zrestProperty: this.zProperty,
     });
 
-    this.colorway = new Colorway({
+    this.colorway = new ZRestColorway({
       zProperty: this.zProperty,
       matInfoMap: this.materialInformationMap,
       clearFunc: this.clearMaps,
     });
 
-    this.wireframe = new Wireframe(this.matMeshMap);
+    this.wireframe = new ZRestWireframe(this.matMeshMap);
 
     // Export functions
     this.getObjectsCenter = getObjectsCenter;

@@ -1,6 +1,6 @@
 import * as THREE from "@/lib/threejs/three";
 
-export default class Wireframe {
+export default class ZRestWireframe {
   constructor(matMeshMap) {
     // Inner storage
     this.matMeshMap = matMeshMap;

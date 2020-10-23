@@ -9,8 +9,11 @@ import pbrFragmentShader from "raw-loader!@/lib/clo/shader/pbrFragmentShader.fra
 import vertexShader from "raw-loader!@/lib/clo/shader/vertexShader.vert";
 import pbrVertexShader from "raw-loader!@/lib/clo/shader/pbrVertexShader.vert";
 
-import { RENDER_FACE_TYPE } from "@/lib/clo/readers/Predefined";
-import { loadZrestTexture, loadTextureDisassembly } from "./TextureManager";
+import { RENDER_FACE_TYPE } from "@/lib/zrest/common/ZRestConst";
+import {
+  loadZrestTexture,
+  loadTextureDisassembly,
+} from "./ZRestTextureManager";
 
 // NOTE: 여기에서 모든 colorway에 대한 material을 만들어야 하나?
 export async function makeMaterial({

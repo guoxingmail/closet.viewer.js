@@ -3,8 +3,8 @@
 import * as THREE from "@/lib/threejs/three";
 
 // import { extractTexture } from "@/lib/clo/readers/zrest_texture";
-import { TEXTURE_TYPE, RENDER_FACE_TYPE } from "@/lib/clo/readers/Predefined";
-import { makeMaterial, buildMaterial } from "./zrest_material";
+import { TEXTURE_TYPE, RENDER_FACE_TYPE } from "@/lib/zrest/common/ZRestConst";
+import { makeMaterial, buildMaterial } from "./ZRestMaterial";
 
 const getFilenameFromURL = (url) => {
   const urlSplit = url.split("/");

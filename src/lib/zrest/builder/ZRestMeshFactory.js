@@ -3,12 +3,12 @@
 import * as THREE from "@/lib/threejs/three";
 
 import { readByteArray } from "@/lib/clo/file/KeyValueMapReader";
-import { RENDER_FACE_TYPE } from "@/lib/clo/readers/Predefined";
+import { RENDER_FACE_TYPE } from "@/lib/zrest/common/ZRestConst";
 import { getFilename } from "@/lib/clo/readers/FileLoader";
 
-import MatMeshManager from "./zrest_matMesh";
+import MatMeshManager from "./ZRestMatMesh";
 
-export default class MeshFactory {
+export default class ZRestMeshFactory {
   constructor({
     matMeshMap: matMeshMap,
     matShapeMap: matShapeMap,
@@ -255,7 +255,7 @@ export default class MeshFactory {
 
       if (zrestLoader.aborted) return;
 
-      // console.warn("Assembled ZRest build @ MeshFactory");
+      // console.warn("Assembled ZRest build @ ZRestMeshFactory");
       const colorwayIndex = this.zProperty.colorwayIndex;
       // console.log(this.zProperty);
       // console.log(colorwayIndex);

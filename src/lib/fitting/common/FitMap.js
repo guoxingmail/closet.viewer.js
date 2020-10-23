@@ -1,5 +1,5 @@
 import * as THREE from "@/lib/threejs/three";
-import { MATMESH_TYPE } from "@/lib/clo/readers/predefined";
+import { MATMESH_TYPE } from "@/lib/zrest/common/ZRestConst";
 import { readByteArray, readMap } from "@/lib/clo/file/KeyValueMapReader";
 import { loadFile } from "@/lib/clo/readers/FileLoader";
 

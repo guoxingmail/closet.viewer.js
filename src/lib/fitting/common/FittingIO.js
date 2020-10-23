@@ -1,6 +1,6 @@
 import { loadFile, unZip } from "@/lib/clo/readers/FileLoader";
 import { readMap } from "@/lib/clo/file/KeyValueMapReader";
-import { ZRestLoader } from "@/lib/clo/readers/ZrestLoader";
+import { ZRestLoader } from "@/lib/zrest/ZRestLoader";
 import * as THREE from "@/lib/threejs/three";
 
 export async function processAvatarSizingFile({ sizingURL, accURL }) {

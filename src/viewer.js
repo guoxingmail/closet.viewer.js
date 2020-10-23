@@ -2,7 +2,7 @@
 import ZRestLoader, {
   dataWorkerFunction,
   checkFileReaderSyncSupport,
-} from "@/lib/clo/readers/ZrestLoader";
+} from "@/lib/zrest/ZRestLoader";
 import * as THREE from "@/lib/threejs/three";
 import "@/lib/threejs/OrbitControls";
 import "@/lib/draco/DRACOLoader";
@@ -13,7 +13,7 @@ import TechPackManager from "@/lib/techPack/TechPackManager";
 import RendererStats from "@xailabs/three-renderer-stats";
 import screenfull from "screenfull";
 
-import { MATMESH_TYPE } from "@/lib/clo/readers/Predefined";
+import { MATMESH_TYPE } from "@/lib/zrest/common/ZRestConst";
 import { addLightForOldVersion } from "@/lib/control/lights";
 import { getTestData } from "./test.js";
 import "@/lib/threejs/BufferGeometryUtils";
@@ -269,64 +269,6 @@ export default class ClosetViewer {
       });
     };
 
-    const test = async () => {
-      const samplingConfiguration = await this.fitting.garment.loadSamplingJson(
-        {
-          jsonURL:
-            "https://files.clo-set.com/public/fitting/5021883564f647b2813d57c7cd60b66c/1/0/sampling.json",
-        }
-      );
-      console.log(samplingConfiguration);
-
-      // await this.fitting.loadDrapingDataFromURL({
-      //   zcrpURL:
-      //     "https://files.clo-set.com/public/fitting/5021883564f647b2813d57c7cd60b66c/1/0/0/P0_162_52.zcrp",
-      //   mapMatMesh: this.zrest.matMeshMap,
-      // });
-      for (let height = 170; height <= 180; height += 100) {
-        const avgWeight =
-          samplingConfiguration.avgWeight +
-          height -
-          samplingConfiguration.avgHeight;
-
-        var minWeight = Math.max(
-          samplingConfiguration.minWeight,
-          avgWeight - samplingConfiguration.weightOffset
-        );
-        var maxWeight = avgWeight + samplingConfiguration.weightOffset;
-
-        for (let weight = minWeight; weight <= maxWeight; weight += 1) {
-          await this.fitting.resizeAvatarWithAcc({
-            height,
-            weight,
-            bodyShape: 0,
-          });
-
-          await this.fitting.drapingUsingZcrp({
-            zcrpURL:
-              "https://files.clo-set.com/public/fitting/5021883564f647b2813d57c7cd60b66c/1/0/0/P0_162_52.zcrp",
-          });
-
-          await this.fitting.loadDrapingData({
-            rootPath:
-              "https://files.clo-set.com/public/fitting/4decc245ab5f4ec7bd0687a94e7ec8e8/1/0/0/",
-            height: height,
-            weight: weight,
-            mapMatMesh: this.zrest.matMeshMap,
-          });
-
-          // await this.fitting.getDrapingData(
-          //   `https://files.clo-set.com/public/fitting/4decc245ab5f4ec7bd0687a94e7ec8e8/1/0/0/P0_${height}_${weight}.zcrp`,
-          //   this.zrest.matMeshMap
-          // );
-
-          this.updateRenderer(1);
-          await sleep(500);
-          this.updateRenderer(1);
-        }
-      }
-    };
-
     const trims = async () => {
       console.log("++ loadResizableAvatar");
       await this.fitting.loadResizableAvatar({
@@ -362,15 +304,90 @@ export default class ClosetViewer {
 
       const supplementsURL = "./fm/supplements.map"
       await this.fitting.resizingSupplementsUsingURL(supplementsURL);
+    };
+
+    const opacity = async () => {
+      console.log("++ loadResizableAvatar");
+      await this.fitting.loadResizableAvatar({
+        avatarURL:
+          "https://files.clo-set.com/public/fitting/avatar/1/Feifei.zrest",
+        sizingURL:
+          "https://files.clo-set.com/public/fitting/avatar/1/Sizing.zip",
+        accURL:
+          "https://files.clo-set.com/public/fitting/avatar/1/Feifei.Acc.map",
+      });
+      console.log("-- loadResizableAvatar");
+
+      console.log("++ resizeAvatarWithAcc");
+      await this.fitting.resizeAvatarWithAcc({
+        height: 177,
+        weight: 56,
+        bodyShape: 0,
+      });
+      console.log("-- resizeAvatarWithAcc");
+
+      await this.fitting.loadGarmentData({
+        garmentURL:
+          "./opacity/garment.zrest",
+        samplingURL:
+          "https://files.clo-set.com/public/fitting/5021883564f647b2813d57c7cd60b66c/1/0/sampling.json",
+      });
+
+      await this.fitting.drapingUsingZcrpURL({
+        zcrpURL:
+          "./opacity/P0_177_56.zcrp",
+      });
+
+      const supplementsURL = "./opacity/supplements.map"
+      await this.fitting.resizingSupplementsUsingURL(supplementsURL);
+
+      await this.fitting.loadFitMap({fitMapURL: "./opacity/P0_177_56.fmap"})
+    };
 
 
+    const test = async () => {
+      console.log("++ loadResizableAvatar");
+      await this.fitting.loadResizableAvatar({
+        avatarURL:
+        // "https://files.clo-set.com/public/fitting/avatar/1/Feifei.zrest",
+          "https://files.clo-set.com/public/fitting/avatar/0/Henry.zrest",
+        sizingURL:
+          "https://files.clo-set.com/public/fitting/avatar/0/Sizing.zip",
+        accURL:
+          "https://files.clo-set.com/public/fitting/avatar/0/Henry.Acc.map",
+      });
+      console.log("-- loadResizableAvatar");
+
+      console.log("++ resizeAvatarWithAcc");
+      await this.fitting.resizeAvatarWithAcc({
+        height: 175,
+        weight: 105,
+        bodyShape: 0,
+      });
+      console.log("-- resizeAvatarWithAcc");
+
+      await this.fitting.loadGarmentData({
+        garmentURL:
+          "./t1/garment.zrest",
+        samplingURL:
+          "https://files.clo-set.com/public/fitting/5021883564f647b2813d57c7cd60b66c/1/0/sampling.json",
+      });
+
+      await this.fitting.drapingUsingZcrpURL({
+        zcrpURL:
+          "./t1/P0_175_105.zcrp",
+      });
+
+      const supplementsURL = "./t1/supplements.map"
+      await this.fitting.resizingSupplementsUsingURL(supplementsURL);
     };
 
     // notWorking();
     // correctlyWorking();listZipper
-    trims();
+    // trims();
+    test();
 
-    // test();
+    // opacity();
 
     this.updateRenderer(1);
   }
@@ -770,7 +787,7 @@ export default class ClosetViewer {
       cameraPosition: this.cameraPosition,
     });
 
-    const object = await this.zrest.loadZrestDisassembly(
+    const object = await this.zrest.loadSeparateZrest(
       rest,
       dracos,
       imgs,
@@ -799,7 +816,7 @@ export default class ClosetViewer {
     // if (onLoad) onLoad(this);
 
     // TODO
-    //  1. Colorway
+    //  1. ZRestColorway
     //  2. zoomToObject
     //  3. onLoad function
 

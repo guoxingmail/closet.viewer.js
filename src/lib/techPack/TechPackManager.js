@@ -1,7 +1,7 @@
 /* eslint-disable require-jsdoc */
 import * as THREE from "@/lib/threejs/three";
 // import {Marker, makeTextSprite} from '@/lib/marker/Marker';
-import { MATMESH_TYPE } from "@/lib/clo/readers/Predefined";
+import { MATMESH_TYPE } from "@/lib/zrest/common/ZRestConst";
 import { StyleLine } from "@/lib/techPack/StyleLine";
 import MarkerManager from "@/lib/marker/MarkerManager";
 import { Measurement } from "./Measurement";

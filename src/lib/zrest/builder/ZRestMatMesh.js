@@ -3,10 +3,10 @@
 import * as THREE from "@/lib/threejs/three";
 
 import { readByteArray } from "@/lib/clo/file/KeyValueMapReader";
-import { MATMESH_TYPE } from "@/lib/clo/readers/Predefined";
-import { makeMaterial } from "@/lib/clo/readers/zrest_material";
-import { unZip } from "./FileLoader";
-import { createMatMesh } from "@/lib/clo/readers/zrest_draco";
+import { MATMESH_TYPE } from "@/lib/zrest/common/ZRestConst";
+import { makeMaterial } from "@/lib/zrest/builder/ZRestMaterial";
+import { unZip } from "../../clo/readers/FileLoader";
+import { createMatMesh } from "@/lib/zrest/builder/ZRestDraco";
 
 export default function MatMeshManager({
   materialInformationMap: materialInformationMap,

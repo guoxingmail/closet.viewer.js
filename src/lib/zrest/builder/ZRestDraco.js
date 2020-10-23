@@ -1,7 +1,7 @@
 import * as THREE from "@/lib/threejs/three";
 import { readByteArray } from "@/lib/clo/file/KeyValueMapReader";
-import { makeMaterial } from "@/lib/clo/readers/zrest_material";
-import { MATMESH_TYPE } from "@/lib/clo/readers/Predefined";
+import { makeMaterial } from "@/lib/zrest/builder/ZRestMaterial";
+import { MATMESH_TYPE } from "@/lib/zrest/common/ZRestConst";
 
 const getDracoGeometry = async (
   matMeshManager,

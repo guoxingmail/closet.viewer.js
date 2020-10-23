@@ -10,7 +10,7 @@ import {
 } from "@/lib/fitting/garment/FittingTrims";
 import { loadFile, unZip } from "@/lib/clo/readers/FileLoader";
 import { readMap } from "@/lib/clo/file/KeyValueMapReader";
-import { MATMESH_TYPE } from "@/lib/clo/readers/predefined";
+import { MATMESH_TYPE } from "@/lib/zrest/common/ZRestConst";
 
 export default class FittingSupplements {
   constructor(zrest) {

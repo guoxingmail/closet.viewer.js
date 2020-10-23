@@ -1,8 +1,8 @@
-import { makeMaterial } from "./zrest_material";
-import { setTexturePropertyDisassembly } from "./TextureManager";
-import { MATMESH_TYPE } from "@/lib/clo/readers/predefined";
+import { makeMaterial } from "../builder/ZRestMaterial";
+import { setTexturePropertyDisassembly } from "../builder/ZRestTextureManager";
+import { MATMESH_TYPE } from "@/lib/zrest/common/ZRestConst";
 
-export default class Colorway {
+export default class ZRestColorway {
   constructor({ zProperty: zProperty, matInfoMap: matInfoMap, clearFunc: clearFunc }) {
     this.zProperty = zProperty;
     this.matInfoMap = matInfoMap;
@@ -25,7 +25,7 @@ export default class Colorway {
     return true;
   };
 
-  // NOTE: Consider outputing error codes
+  // NOTE: Consider outputting error codes
   checkColorwayIndex = ({ colorwayIndex: colorwayIndex, jsZip: jsZip }) => {
     if (colorwayIndex === undefined) {
       console.warn("Invalid colorwayIndex");

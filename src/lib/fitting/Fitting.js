@@ -27,20 +27,6 @@ export default class Fitting {
 
     this.getZcrpFilename = this.garment.getGarmentFileName;
     this.loadZcrp = this.garment.loadZcrp;
-    this.loadDrapingSamplingJSON = ({
-      rootPath,
-      height,
-      weight,
-      mapMatMesh,
-    }) => {
-      return this.garment.loadSamplingJson({
-        rootPath,
-        height,
-        weight,
-        mapMatMesh,
-      });
-    };
-    this.loadDrapingDataFromURL = this.garment.loadDrapingDataFromURL;
   }
 
   async loadResizableAvatar({
@@ -173,15 +159,8 @@ export default class Fitting {
       bodyVertexIndex: this.avatar.bodyVertexIndex,
       bodyVertexPos: this.avatar.bodyVertexPos,
       zrest: this.zrest,
-      // rootMap: this.zrest.zProperty.rootMap,
     });
 
-    // this.garment.setBody(
-    //   this.avatar.bodyVertexPos,
-    //   this.avatar.bodyVertexIndex
-    // );
-    // console.log(this.avatar.bodyVertexPos, this.avatar.bodyVertexIndex);
-    //this.avatar.get
     console.log("+ loadSamplingJson");
     await this.garment.loadSamplingJson({
       jsonURL: samplingURL,

@@ -9,8 +9,8 @@ export default class FittingSkinControllerManager {
     this.mapMatMesh = zrest.zProperty.matMeshMap;
 
     // console.log(zrest);
-    console.log(zrest.meshFactory.matmeshManager.mapSCMatmeshID);
-    console.log(zrest.matMeshMap);
+    // console.warn(zrest.meshFactory.matmeshManager.mapSCMatmeshID);
+    // console.warn(zrest.matMeshMap);
   }
 
   // NOTE:

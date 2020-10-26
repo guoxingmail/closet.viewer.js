@@ -108,7 +108,7 @@
     <Content Include="src\lib\clo\readers\ZRestMeshFactory.js" />
     <Content Include="src\lib\clo\readers\ObjectUtils.js" />
     <Content Include="src\lib\clo\readers\ZRestConst.js" />
-    <Content Include="src\lib\clo\readers\ZRestTextureManager.js" />
+    <Content Include="src\lib\clo\readers\ZRestTexture.js" />
     <Content Include="src\lib\clo\readers\ZRestWireframe.js" />
     <Content Include="src\lib\clo\readers\ZRestLoader.js" />
     <Content Include="src\lib\clo\readers\ZrestReader.js" />

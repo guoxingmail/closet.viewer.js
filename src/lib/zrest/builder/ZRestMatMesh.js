@@ -2,10 +2,6 @@
 "use strict";
 import * as THREE from "@/lib/threejs/three";
 
-import { readByteArray } from "@/lib/clo/file/KeyValueMapReader";
-import { MATMESH_TYPE } from "@/lib/zrest/common/ZRestConst";
-import { makeMaterial } from "@/lib/zrest/builder/ZRestMaterial";
-import { unZip } from "../../clo/readers/FileLoader";
 import { createMatMesh } from "@/lib/zrest/builder/ZRestDraco";
 
 export default function MatMeshManager({
@@ -38,7 +34,7 @@ MatMeshManager.prototype = {
   constructor: MatMeshManager,
 
   // 난 이 지옥을 벗어날 수 있을까?
-  async getMatMeshs(
+  async getMatMeshes(
     zrestLoader,
     mapGeometry,
     zip,
@@ -54,7 +50,7 @@ MatMeshManager.prototype = {
       if (!listCT3D) return;
 
       const newListCT3DPromise = listCT3D.map(async (childTF3D) => {
-        return await this.getMatMeshs(
+        return await this.getMatMeshes(
           zrestLoader,
           childTF3D,
           zip,
@@ -72,7 +68,7 @@ MatMeshManager.prototype = {
       const mapTransformer3D = mapGeometry.get("mapTransformer3D");
       if (mapTransformer3D) {
         if (zrestLoader.aborted) return;
-        const childTF = await this.getMatMeshs(
+        const childTF = await this.getMatMeshes(
           zrestLoader,
           mapTransformer3D,
           zip,

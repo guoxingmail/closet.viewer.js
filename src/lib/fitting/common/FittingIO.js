@@ -158,7 +158,7 @@ export async function loadZrestForFitting({
   // }
 
   console.log("\t\t\t\t+ zrest.loadOnly");
-  const dataArr = await zrest.loadOnly(url, progress);
+  const dataArr = await zrest.loadForFitting(url, progress);
   console.log("\t\t\t\t- zrest.loadOnly");
 
   console.log("\t\t\t\t+ zrest.parseAsync");

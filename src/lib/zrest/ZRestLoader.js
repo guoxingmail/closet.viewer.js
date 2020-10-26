@@ -11,7 +11,7 @@ import {
   extractTexture,
   getTexture,
   setTexturePropertyDisassembly,
-} from "./builder/ZRestTextureManager";
+} from "./builder/ZRestTexture";
 
 import { MATMESH_TYPE } from "@/lib/zrest/common/ZRestConst";
 import ZRestMeshFactory from "./builder/ZRestMeshFactory";
@@ -47,7 +47,6 @@ export default class ZRestLoader {
     this.zProperty.renderCamera = camera;
 
     this.matMeshMap = new Map();
-    // this.currentColorwayIndex = 0;
     this.jsZip = null;
 
     this.textureMap = new Map();
@@ -105,6 +104,7 @@ export default class ZRestLoader {
       colorwayIndex: -1,
       colorwaySize: 0,
       bSeparate: false,
+      bFitting: false,
 
       // global variable
       nameToTextureMap: new Map(),
@@ -114,7 +114,7 @@ export default class ZRestLoader {
       },
       renderCamera: null,
 
-      // zElement
+      // TODO: rootMap should be removed. it causes memory leaks.
       rootMap: new Map(),
       seamPuckeringNormalMap: null,
       listMapTextureMatMeshId: null,
@@ -162,8 +162,10 @@ export default class ZRestLoader {
     // this.materialInformationMap.clear();
   };
 
-  loadOnly = (url, onProgress) => {
+  // TODO: Too many load modules on here. Do refactor.
+  loadForFitting = (url, onProgress) => {
     zrestProperty.bSeparate = false;
+    zrestProperty.bFitting = true;
     const loader = new THREE.FileLoader(this.manager);
     loader.setResponseType("arraybuffer");
 
@@ -260,7 +262,7 @@ export default class ZRestLoader {
     disposeIfExists(obj.material);
     disposeIfExists(obj.texture);
 
-    obj = undefined;
+    obj = null;
   };
 
   parse = (data, onLoad) => {

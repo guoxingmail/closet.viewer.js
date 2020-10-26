@@ -1,5 +1,5 @@
 import { makeMaterial } from "../builder/ZRestMaterial";
-import { setTexturePropertyDisassembly } from "../builder/ZRestTextureManager";
+import { setTexturePropertyDisassembly } from "../builder/ZRestTexture";
 import { MATMESH_TYPE } from "@/lib/zrest/common/ZRestConst";
 
 export default class ZRestColorway {

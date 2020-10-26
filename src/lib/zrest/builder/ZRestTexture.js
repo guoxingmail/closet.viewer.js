@@ -2,9 +2,7 @@
 "use strict";
 import * as THREE from "@/lib/threejs/three";
 
-// import { extractTexture } from "@/lib/clo/readers/zrest_texture";
-import { TEXTURE_TYPE, RENDER_FACE_TYPE } from "@/lib/zrest/common/ZRestConst";
-import { makeMaterial, buildMaterial } from "./ZRestMaterial";
+import { TEXTURE_TYPE } from "@/lib/zrest/common/ZRestConst";
 
 const getFilenameFromURL = (url) => {
   const urlSplit = url.split("/");

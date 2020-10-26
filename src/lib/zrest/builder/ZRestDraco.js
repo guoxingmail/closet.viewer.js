@@ -3,13 +3,13 @@ import { readByteArray } from "@/lib/clo/file/KeyValueMapReader";
 import { makeMaterial } from "@/lib/zrest/builder/ZRestMaterial";
 import { MATMESH_TYPE } from "@/lib/zrest/common/ZRestConst";
 
-const getDracoGeometry = async (
+const getDracoGeometry = async ({
   matMeshManager,
-  qsDracoFileName,
-  JSZipOrDracoData
-) => {
+  dracoFilename,
+  JSZipOrDracoData,
+}) => {
   // Draco Compression
-  const dracoMeshFilename = readByteArray("String", qsDracoFileName);
+  const dracoMeshFilename = readByteArray("String", dracoFilename);
   if (!dracoMeshFilename) {
     console.error("cannot find draco Mesh");
     return false;
@@ -444,11 +444,11 @@ export const getAllDracoGeometry = async ({
     }
     const dracoFilename =
       mapShape.get("qsDracoFileNameUTF8") || mapShape.get("qsDracoFileName");
-    return await getDracoGeometry(
+    return await getDracoGeometry({
       matMeshManager,
       dracoFilename,
-      JSZipOrDracoData
-    );
+      JSZipOrDracoData,
+    });
   });
   return await Promise.all(newListMatShape);
 };
@@ -505,14 +505,14 @@ export const createMatMesh = async (
     const dracoFilename =
       mapShape.get("qsDracoFileNameUTF8") || mapShape.get("qsDracoFileName");
 
-    const dracoGeometry = await getDracoGeometry(
+    const dracoGeometry = await getDracoGeometry({
       matMeshManager,
       dracoFilename,
-      JSZipOrDracoData
-    );
+      JSZipOrDracoData,
+    });
     // console.log("dragoGeometry done");
 
-    const bVisiable = matShape.get("bMatShapeVisible") || false;
+    const bVisible = matShape.get("bMatShapeVisible") || false;
 
     await splitMatShapeToMatMesh(
       matMeshManager,
@@ -520,7 +520,7 @@ export const createMatMesh = async (
       totalIndexCount,
       listIndexCount,
       dracoGeometry,
-      bVisiable,
+      bVisible,
       frontVertexCount,
       JSZipOrDracoData,
       tf,

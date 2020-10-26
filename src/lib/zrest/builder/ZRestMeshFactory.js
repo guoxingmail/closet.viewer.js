@@ -207,7 +207,7 @@ export default class ZRestMeshFactory {
 
       const colorwayIndex = this.zProperty.colorwayIndex;
       // TODO: 투명 여부에 따른 mesh 순서 파악해야 함
-      let tf = await this.matmeshManager.getMatMeshs(
+      let tf = await this.matmeshManager.getMatMeshes(
         zrestLoader,
         mapGeometry,
         dracosData,
@@ -220,7 +220,7 @@ export default class ZRestMeshFactory {
       retObject.add(tf);
       if (zrestLoader.aborted) return;
 
-      tf = await this.matmeshManager.getMatMeshs(
+      tf = await this.matmeshManager.getMatMeshes(
         zrestLoader,
         mapGeometry,
         dracosData,
@@ -261,7 +261,7 @@ export default class ZRestMeshFactory {
       // console.log(colorwayIndex);
       console.log("\tGetMatMeshes loop 1")
       // 불투명 부터 추가해서 불투명 object 부터 그리기
-      let tf = await this.matmeshManager.getMatMeshs(
+      let tf = await this.matmeshManager.getMatMeshes(
         zrestLoader,
         mapGeometry,
         jsZip,
@@ -275,7 +275,7 @@ export default class ZRestMeshFactory {
 
       console.log("\tGetMatMeshes loop 2")
       // 투명한것 추가
-      tf = await this.matmeshManager.getMatMeshs(
+      tf = await this.matmeshManager.getMatMeshes(
         zrestLoader,
         mapGeometry,
         jsZip,

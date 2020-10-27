@@ -17,6 +17,7 @@ export type Benchmarking = Record<string, Record<string, Measurement>>
 function log(...args) {
     console.log('MetricReporter: ', ...args);
 }
+const reportPath = path.resolve(__dirname, '..', 'metric-report.json');
 export default class MetricReporter {
 
     report(b: Benchmarking) {
@@ -43,6 +44,14 @@ export default class MetricReporter {
         const entries = Object.keys(process.env).filter(x=>x.startsWith(envHead)).map(key=> [key.substring(envHead.length), process.env[key]] )
         return _.fromPairs(entries)
     }
+    
+    previousReportObj():any {
+        if (fs.existsSync(reportPath)) {
+            return JSON.parse(fs.readFileSync(reportPath).toString('utf-8'))
+        } else {
+            return {}
+        }
+    }
     jasmineDone(result) {
         
         if (result.failedExpectations.length > 0) {
@@ -61,11 +70,7 @@ export default class MetricReporter {
             meta: this.metaObj()
         };
 
-        const reportPath = path.resolve(__dirname, '..', 'metric-report.json');
-
-        const existingReportObj = JSON.parse(fs.readFileSync(reportPath).toString('utf-8'))
-
-        const json = JSON.stringify( _.merge(existingReportObj, reportingObj) );
+        const json = JSON.stringify( _.merge(this.previousReportObj(), reportingObj) );
 
         fs.writeFileSync(reportPath, json)
     }

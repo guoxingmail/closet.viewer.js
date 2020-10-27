@@ -14,6 +14,7 @@ exports.Measurement = Measurement;
 function log(...args) {
     console.log('MetricReporter: ', ...args);
 }
+const reportPath = path.resolve(__dirname, '..', 'metric-report.json');
 class MetricReporter {
     constructor() {
         this.benchmarkings = [];
@@ -35,6 +36,14 @@ class MetricReporter {
         const entries = Object.keys(process.env).filter(x => x.startsWith(envHead)).map(key => [key.substring(envHead.length), process.env[key]]);
         return _.fromPairs(entries);
     }
+    previousReportObj() {
+        if (fs.existsSync(reportPath)) {
+            return JSON.parse(fs.readFileSync(reportPath).toString('utf-8'));
+        }
+        else {
+            return {};
+        }
+    }
     jasmineDone(result) {
         if (result.failedExpectations.length > 0) {
             log('Test failed. Not reporting performance metrics.');
@@ -49,9 +58,7 @@ class MetricReporter {
             benchmarks: this.benchMarkingObj(),
             meta: this.metaObj()
         };
-        const reportPath = path.resolve(__dirname, '..', 'metric-report.json');
-        const existingReportObj = JSON.parse(fs.readFileSync(reportPath).toString('utf-8'));
-        const json = JSON.stringify(_.merge(existingReportObj, reportingObj));
+        const json = JSON.stringify(_.merge(this.previousReportObj(), reportingObj));
         fs.writeFileSync(reportPath, json);
     }
 }

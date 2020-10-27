@@ -4,19 +4,28 @@ import * as _ from 'lodash';
 import { AggregatedResult, Context, Reporter, ReporterOnStartOptions, Test, TestResult } from "@jest/reporters";
 import { TestCaseResult } from "@jest/test-result";
 
+export class Measurement {
+    public constructor (
+        public unit:string,
+        public value: number
+    ) {}
+}
+
+export type Benchmarking = Record<string, Record<string, Measurement>>
+
 
 function log(...args) {
     console.log('MetricReporter: ', ...args);
 }
 export default class MetricReporter {
 
-    report(m: PerformanceMetric) {
-        this.metrics.push(m);
+    report(b: Benchmarking) {
+        this.benchmarkings.push(b);
     }
     constructor() {
-        this.metrics = [];
+        this.benchmarkings = [];
     }
-    metrics: PerformanceMetric[];
+    benchmarkings: Benchmarking[];
 
     // https://jasmine.github.io/api/edge/Reporter.html
 
@@ -26,47 +35,38 @@ export default class MetricReporter {
     specDone(result) {    }
     suiteDone(result) {    }
 
+    benchMarkingObj():any {
+        return this.benchmarkings.reduceRight(_.merge, {})
+    }
+    metaObj():any {
+        const envHead = 'REPORT_META_'
+        const entries = Object.keys(process.env).filter(x=>x.startsWith(envHead)).map(key=> [key.substring(envHead.length), process.env[key]] )
+        return _.fromPairs(entries)
+    }
     jasmineDone(result) {
         
         if (result.failedExpectations.length > 0) {
             log('Test failed. Not reporting performance metrics.');
             return;
         }
-        const metrics: PerformanceMetric[] = this.metrics
+        const benchmarkings: Benchmarking[] = this.benchmarkings
 
-        if (metrics.length == 0) {
+        if (benchmarkings.length == 0) {
             log('Nothing to report');
             return;
         }
 
-        return processMetrics(metrics).then(x=>{
-            var report:any = {};
-            report.benchmarks = x;
-            const envHead = 'REPORT_META_'
-            const entries = Object.keys(process.env).filter(x=>x.startsWith(envHead)).map(key=> [key.substring(envHead.length), process.env[key]] )
-            const meta = _.fromPairs(entries)
-            report.meta = meta;
-            const json = JSON.stringify(report);
-            fs.writeFileSync(path.resolve(__dirname, '..', 'metric-report.json'), json)
-        })
+        const reportingObj = {
+            benchmarks: this.benchMarkingObj(),
+            meta: this.metaObj()
+        };
+
+        const reportPath = path.resolve(__dirname, '..', 'metric-report.json');
+
+        const existingReportObj = JSON.parse(fs.readFileSync(reportPath).toString('utf-8'))
+
+        const json = JSON.stringify( _.merge(existingReportObj, reportingObj) );
+
+        fs.writeFileSync(reportPath, json)
     }
-}
-
-export class PerformanceMetric {
-    constructor(
-        public name: string,
-        public JSHeapUsedSize: number,
-        public JSHeapTotalSize: number,
-        public TaskDuration: number
-    ) { }
-}
-
-async function processMetrics(ms:PerformanceMetric[]): Promise<any> {
-    return ms.reduce((x,{name,JSHeapTotalSize, JSHeapUsedSize, TaskDuration})=>{
-        x[name] = {}
-        x[name].JSHeapTotalSize = {unit:"mb", value: Number.parseFloat((JSHeapTotalSize/(1024*1024)).toFixed(2))}
-        x[name].JSHeapUsedSize = {unit:"mb", value: Number.parseFloat((JSHeapUsedSize/(1024*1024)).toFixed(2))}
-        x[name].TaskDuration = {unit:"s", value:TaskDuration}
-        return x
-    },{});
 }

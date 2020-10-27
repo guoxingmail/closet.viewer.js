@@ -5,8 +5,10 @@ import PATH from "path"
 import { hash } from "imghash";
 import leven from "leven";
 import puppeteer from "puppeteer";
-import MetricReporter, { PerformanceMetric } from "../metric-reporter/metric-reporter";
-
+import MetricReporter, { Measurement } from "../metric-reporter/metric-reporter";
+import * as D from "io-ts/Decoder";
+import { pipe } from "fp-ts/function";
+import { bimap } from "fp-ts/Either";
 // Consider using jest-puppeteer
 
 declare var metricReporter:MetricReporter;
@@ -25,6 +27,12 @@ beforeAll(async () => {
 })
 afterAll(async () => {
     await browser.close();
+})
+
+const ChromeMetric = D.type({
+    JSHeapUsedSize: D.number,
+    JSHeapTotalSize: D.number,
+    TaskDuration: D.number
 })
 
 describe.each(testCases)("graphic", (casePath:string) => {
@@ -52,7 +60,19 @@ describe.each(testCases)("graphic", (casePath:string) => {
 
             const metrics = await page.metrics();
 
-            metricReporter.report(new PerformanceMetric(testName, metrics.JSHeapUsedSize, metrics.JSHeapTotalSize, metrics.TaskDuration));
+            const decoded = ChromeMetric.decode(metrics);
+            pipe(decoded, bimap(
+                (notChromeMetric) => console.log("failed to decode ChromeMetric", metrics),
+                (chromeMetric) => {
+                    metricReporter.report({
+                        [testName]: {
+                            JSHeapUsedSize: new Measurement("bytes", chromeMetric.JSHeapUsedSize),
+                            JSHeapTotalSize: new Measurement("bytes", chromeMetric.JSHeapTotalSize),
+                            TaskDuration: new Measurement("s", chromeMetric.TaskDuration)
+                        }
+                    })
+                }
+            ))
             await page.close();
         }, 50000)
     }

@@ -9,6 +9,10 @@ import MetricReporter, { Measurement } from "../metric-reporter/metric-reporter"
 import * as D from "io-ts/Decoder";
 import { pipe } from "fp-ts/function";
 import { bimap } from "fp-ts/Either";
+import * as rx from "rxjs";
+import * as rxOp from "rxjs/operators";
+import * as _ from "lodash";
+import { uniqueId } from "lodash";
 // Consider using jest-puppeteer
 
 declare var metricReporter:MetricReporter;
@@ -20,7 +24,9 @@ const testCases = fs.readdirSync(casesPath).map(x => PATH.join(casesPath, x)).fi
 var browser: puppeteer.Browser;
 beforeAll(async () => {
     try {
-        browser = await puppeteer.launch({args: ['--no-sandbox']});
+        browser = await puppeteer.launch({
+            // headless: false,
+            args: ['--no-sandbox', '--disable-web-security']});
     } catch (error) {
         console.log(error);
     }
@@ -35,54 +41,92 @@ const ChromeMetric = D.type({
     TaskDuration: D.number
 })
 
-describe.each(testCases)("graphic", (casePath:string) => {
+describe.each(testCases)("graphic", (casePath: string) => {
     const htmlFilePath = PATH.join(casePath, 'scenario.html');
-    const htmlExists = fs.existsSync(htmlFilePath);
-    test(`${htmlFilePath} exists`, () => expect(htmlExists).toBeTruthy());
+    const testName = 'rendering test: ' + PATH.basename(casePath)
 
-    const expectPath = PATH.join(casePath, 'expect.png');
-    const expectExists = fs.existsSync(expectPath);
-    test(`${expectPath} exists`, () => expect(expectExists).toBeTruthy())
+    it(testName, async () => {
+        expect(fs.existsSync(htmlFilePath)).toBeTruthy();
 
-    if (htmlExists && expectExists) {
-        const testName = `${PATH.basename(casePath)} renders as expected`;
-        test(testName, async () => {
-            const page = await browser.newPage();
-            const htmlFileURL = URL.pathToFileURL(htmlFilePath);
-            await page.goto(htmlFileURL.toString());
-            await page.waitForSelector("#finish");
-            const element = await page.$("canvas");
-            const pngBase64 = await element.screenshot();
-            const sampleImgPath = PATH.join(casePath, "result.png");
-            fs.writeFileSync(sampleImgPath, pngBase64, { encoding: 'base64' });
-            const difference = await calculateDifference(sampleImgPath, expectPath);
-            expect(difference).toBeLessThan(1);
+        const htmlFileURL = URL.pathToFileURL(htmlFilePath);
+        const [page, screenshotStream] = await streamScreenshots(htmlFileURL)
+        const savedImgs = screenshotStream.pipe(
+            rxOp.map((pngBuffer) => {
+                const sampleImgPath = PATH.join(casePath, `result-${uniqueId()}.png`);
+                fs.writeFileSync(sampleImgPath, pngBuffer, { encoding: 'base64' });
+                return sampleImgPath;
+            })
+        )
 
-            const metrics = await page.metrics();
+        const expectPath = PATH.join(casePath, "expect")
+        const expectImgs = fs.readdirSync(expectPath).filter(x=>PATH.extname(x) === '.png').sort().map(x => PATH.join(expectPath, x))
 
-            const decoded = ChromeMetric.decode(metrics);
-            pipe(decoded, bimap(
-                (notChromeMetric) => console.log("failed to decode ChromeMetric", metrics),
-                (chromeMetric) => {
-                    metricReporter.report({
-                        [testName]: {
-                            JSHeapUsedSize: new Measurement("bytes", chromeMetric.JSHeapUsedSize),
-                            JSHeapTotalSize: new Measurement("bytes", chromeMetric.JSHeapTotalSize),
-                            TaskDuration: new Measurement("s", chromeMetric.TaskDuration)
-                        }
-                    })
-                }
-            ))
-            await page.close();
-        }, 50000)
-    }
+        const scores = await rx.zip(savedImgs, rx.from(expectImgs))
+          .pipe(
+            rxOp.map(calculateDifference),
+            rxOp.mergeAll(),
+            rxOp.toArray()
+          )
+          .toPromise();
+
+        console.log({scores});
+        scores.forEach(x=>{
+            expect(x).toBeLessThan(8);
+        })
+        
+        reportMetric(page, testName);
+
+    }, 50000)
 })
 
-async function calculateDifference(sampleImagePath: string, expectedImagePath: string) {
-    const hash1 = await hash(sampleImagePath);
-    const hash2 = await hash(expectedImagePath);
+async function calculateDifference([sampleImagePath, expectedImagePath]: [string, string]) {
+    const hash1 = await hash(sampleImagePath, 64);
+    const hash2 = await hash(expectedImagePath, 64);
 
     const dist = leven(hash1, hash2);
 
     return dist;
+}
+
+async function streamScreenshots(url: URL): Promise<[puppeteer.Page, rx.Observable<Buffer>]> {
+    const page = await browser.newPage();
+    await page.setRequestInterception(true);
+    return [page, new rx.Observable(subscriber => {
+        page.on('request', (req) => {
+            if (req.url().includes('screenshotrequest')) {
+                if (req.method() == "DELETE") {
+                    subscriber.complete();
+                    req.respond({status: 200})
+                } else {
+                    page.$("canvas").then(element => {
+                        element.screenshot().then((pngBuffer) => {
+                            subscriber.next((pngBuffer as unknown as Buffer))
+                            req.respond({ status: 200 })
+                        })
+                    })
+                }
+            } else {
+                req.continue();
+            }
+        })
+        page.goto(url.toString());
+    })]
+}
+
+async function reportMetric(page: puppeteer.Page, testName: string) {
+    const metrics = await page.metrics();
+
+    const decoded = ChromeMetric.decode(metrics);
+    pipe(decoded, bimap(
+        (notChromeMetric) => console.log("failed to decode ChromeMetric", metrics),
+        (chromeMetric) => {
+            metricReporter.report({
+                [testName]: {
+                    JSHeapUsedSize: new Measurement("bytes", chromeMetric.JSHeapUsedSize),
+                    JSHeapTotalSize: new Measurement("bytes", chromeMetric.JSHeapTotalSize),
+                    TaskDuration: new Measurement("s", chromeMetric.TaskDuration)
+                }
+            })
+        }
+    ))
 }

@@ -56,6 +56,7 @@
     "prettier": "^2.0.2",
     "prettier-eslint": "^9.0.1",
     "puppeteer": "^5.3.1",
+    "rxjs": "^6.6.3",
     "s3": "^4.4.0",
     "selenium-webdriver": "^4.0.0-alpha.7",
     "serialize-javascript": "^2.1.2",

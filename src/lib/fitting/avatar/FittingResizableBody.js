@@ -89,7 +89,10 @@ export default class ResizableBody {
     // console.warn(MEASUREMENT_LIST_NAME.SIZE_OF_MEASUREMENT_LIST);
 
     const tableSize = getTableSize(height, weight, this.mHeightWeightTo5SizesMap);
-    if (!tableSize) return;
+    if (!tableSize) {
+      console.warn("Table size not found! height: " + height + ", weight: " + weight);
+      return;
+    }
 
     const changedSize = this.applyBodyShape(
       bodyShape,
@@ -404,7 +407,7 @@ export function getTableSize(height, weight, table) {
   const arrSize = heightTable ? heightTable.get(String(weight)) : null;
 
   if (!arrSize) {
-    console.error(
+    console.warn(
       "ERROR: No data found. height: " + height + ", weight: " + weight
     );
     console.log(table);

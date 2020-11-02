@@ -351,19 +351,17 @@ const splitMatShapeToMatMesh = async (
       BOUNDING_SPHERE_RADIUS: boundingSphereRadius,
     };
 
-    if (zrestVersion >= 4) {
-      if (bVisible === undefined || bVisible === null) {
-        threeMesh.visible = true;
-      } else {
-        threeMesh.visible = bVisible;
-        if (bVisible === 0) {
-          threeMesh.visible = false;
-        } else if (bVisible === 1) {
-          threeMesh.visible = true;
-        }
-      }
-    } else {
+    if (zrestVersion < 4 || bVisible === undefined || bVisible === null) {
       threeMesh.visible = true;
+    } else {
+      // NOTE:
+      // This value would be '0' or 'false' depends on the DLL version.
+      // This will be fixed naturally if using Typescript.
+      if (bVisible === 0 || bVisible === false) {
+        threeMesh.visible = false;
+      } else {
+        threeMesh.visible = true;
+      }
     }
 
     let b = true;

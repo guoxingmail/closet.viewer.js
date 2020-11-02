@@ -6,7 +6,7 @@
   "scripts": {
     "develop": "webpack-dev-server --mode development --hot --open --inline",
     "build": "cross-env NODE_ENV=production webpack --mode production --hide-modules",
-    "test": "jest --logHeapUsage"
+    "test": "jest --runInBand"
   },
   "repository": "git+https://github.com/clovirtualfashion/closet.viewer.js.git",
   "author": "CLO",
@@ -40,6 +40,8 @@
     "@types/lodash": "^4.14.162",
     "@types/nodegit": "^0.26.11",
     "@types/puppeteer": "^3.0.2",
+    "@types/react": "^16.9.55",
+    "@types/react-dom": "^16.9.9",
     "@types/selenium-webdriver": "^4.0.9",
     "babel-preset-es2017": "^6.24.1",
     "eslint": "^6.8.0",
@@ -56,6 +58,8 @@
     "prettier": "^2.0.2",
     "prettier-eslint": "^9.0.1",
     "puppeteer": "^5.3.1",
+    "react": "^17.0.1",
+    "react-dom": "^17.0.1",
     "rxjs": "^6.6.3",
     "s3": "^4.4.0",
     "selenium-webdriver": "^4.0.0-alpha.7",

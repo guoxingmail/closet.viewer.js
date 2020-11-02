@@ -1,15 +1,15 @@
 module.exports = {
     preset: 'ts-jest',
-    testEnvironment: 'node',
+
+    globalSetup: '<rootDir>/ci/jestSetup.js',
+    globalTeardown: '<rootDir>/ci/jestTeardown.js',
+    testEnvironment: '<rootDir>/ci/jestEnvironment.js',
+    setupFilesAfterEnv: ['<rootDir>/ci/jestAfterEnvSetup.js'],
     reporters: [
         'default',
         ['jest-junit', {
             outputDirectory: 'test-reports',
             outputName: 'report.xml',
         }],
-        // '<rootDir>/metric-reporter/metric-reporter.js'
     ],
-    // globalSetup: '<rootDir>/metric-reporter/setup.js'
-
-    setupFilesAfterEnv: ['<rootDir>/metric-reporter/setup.js']
 };

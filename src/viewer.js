@@ -274,7 +274,7 @@ export default class ClosetViewer {
       await this.fitting.loadResizableAvatar({
         avatarURL:
           // "https://files.clo-set.com/public/fitting/avatar/1/Feifei.zrest",
-        "https://files.clo-set.com/public/fitting/avatar/0/Henry.zrest",
+          "https://files.clo-set.com/public/fitting/avatar/0/Henry.zrest",
         sizingURL:
           "https://files.clo-set.com/public/fitting/avatar/0/Sizing.zip",
         accURL:
@@ -291,18 +291,16 @@ export default class ClosetViewer {
       console.log("-- resizeAvatarWithAcc");
 
       await this.fitting.loadGarmentData({
-        garmentURL:
-          "./fm/garment.zrest",
+        garmentURL: "./fm/garment.zrest",
         samplingURL:
           "https://files.clo-set.com/public/fitting/5021883564f647b2813d57c7cd60b66c/1/0/sampling.json",
       });
 
       await this.fitting.drapingUsingZcrpURL({
-        zcrpURL:
-        "./fm/P0_187_101.zcrp",
+        zcrpURL: "./fm/P0_187_101.zcrp",
       });
 
-      const supplementsURL = "./fm/supplements.map"
+      const supplementsURL = "./fm/supplements.map";
       await this.fitting.resizingSupplementsUsingURL(supplementsURL);
     };
 
@@ -327,29 +325,106 @@ export default class ClosetViewer {
       console.log("-- resizeAvatarWithAcc");
 
       await this.fitting.loadGarmentData({
-        garmentURL:
-          "./opacity/garment.zrest",
+        garmentURL: "./opacity/garment.zrest",
         samplingURL:
           "https://files.clo-set.com/public/fitting/5021883564f647b2813d57c7cd60b66c/1/0/sampling.json",
       });
 
       await this.fitting.drapingUsingZcrpURL({
-        zcrpURL:
-          "./opacity/P0_177_56.zcrp",
+        zcrpURL: "./opacity/P0_177_56.zcrp",
       });
 
-      const supplementsURL = "./opacity/supplements.map"
+      const supplementsURL = "./opacity/supplements.map";
       await this.fitting.resizingSupplementsUsingURL(supplementsURL);
 
-      await this.fitting.loadFitMap({fitMapURL: "./opacity/P0_177_56.fmap"})
+      await this.fitting.loadFitMap({ fitMapURL: "./opacity/P0_177_56.fmap" });
     };
 
+    const reloadZcrp = async () => {
+      console.log("++ loadResizableAvatar");
+      await this.fitting.loadResizableAvatar({
+        avatarURL:
+          "https://files.clo-set.com/public/fitting/avatar/0/Henry.zrest",
+        sizingURL:
+          "https://files.clo-set.com/public/fitting/avatar/0/Sizing.zip",
+        accURL:
+          "https://files.clo-set.com/public/fitting/avatar/0/Henry.Acc.map",
+      });
+      console.log("-- loadResizableAvatar");
+
+      const garmentURL =
+        "https://files.clo-set.com/public/fitting/2077e533a6e74495a445e63bee19e092/1/0/0/garment.zrest";
+      const samplingURL =
+        "https://files.clo-set.com/public/fitting/2077e533a6e74495a445e63bee19e092/1/0/sampling.json";
+      const supplementsURL =
+        "https://files.clo-set.com/public/fitting/2077e533a6e74495a445e63bee19e092/1/0/0/supplements.map";
+      const zcrpList = [
+        "https://files.clo-set.com/public/fitting/2077e533a6e74495a445e63bee19e092/1/0/0/P0_178_80.zcrp",
+        "https://files.clo-set.com/public/fitting/2077e533a6e74495a445e63bee19e092/1/0/0/P0_178_80.zcrp",
+        "https://files.clo-set.com/public/fitting/2077e533a6e74495a445e63bee19e092/1/0/0/P0_167_61.zcrp",
+      ];
+      const avatarSizeList = [
+        {
+          height: 178,
+          weight: 80,
+          bodyShape: 0,
+        },
+        {
+          height: 178,
+          weight: 80,
+          bodyShape: 0,
+        },
+        {
+          height: 167,
+          weight: 61,
+          bodyShape: 0,
+        },
+      ];
+
+      // case of success
+      for (let i = 0; i < 3; i++) {
+        console.log(`++++++++ take ${i}`);
+        console.log("++ resizeAvatarWithAcc");
+        await this.fitting.resizeAvatarWithAcc(avatarSizeList[i]);
+        console.log("-- resizeAvatarWithAcc");
+        // zrest file 항상 로드
+        await this.fitting.loadGarmentData({ garmentURL, samplingURL });
+        console.log("++ load zcrp");
+        await this.fitting.drapingUsingZcrpURL({ zcrpURL: zcrpList[i] });
+        console.log("-- load zcrp");
+        await this.fitting.resizingSupplementsUsingURL(supplementsURL);
+        await sleep(500);
+        this.updateRenderer(1);
+        console.log(`------- take ${i}`);
+        await sleep(1000);
+      }
+
+      // case of failure
+      for (let i = 0; i < 3; i++) {
+        console.log(`++++++++ take ${i}`);
+        console.log("++ resizeAvatarWithAcc");
+        await this.fitting.resizeAvatarWithAcc(avatarSizeList[i]);
+        console.log("-- resizeAvatarWithAcc");
+        // zrest file 최초에 1번만 로드
+        if (i === 0) {
+          await this.fitting.loadGarmentData({ garmentURL, samplingURL });
+        }
+        console.log("++ load zcrp");
+        await this.fitting.drapingUsingZcrpURL({ zcrpURL: zcrpList[i] });
+        console.log("-- load zcrp");
+        await this.fitting.resizingSupplementsUsingURL(supplementsURL);
+        await sleep(500);
+        this.updateRenderer(1);
+        console.log(`------- take ${i}`);
+        await sleep(1000);
+      }
+    };
 
     const test = async () => {
       console.log("++ loadResizableAvatar");
       await this.fitting.loadResizableAvatar({
         avatarURL:
-        // "https://files.clo-set.com/public/fitting/avatar/1/Feifei.zrest",
+          // "https://files.clo-set.com/public/fitting/avatar/1/Feifei.zrest",
           "https://files.clo-set.com/public/fitting/avatar/0/Henry.zrest",
         sizingURL:
           "https://files.clo-set.com/public/fitting/avatar/0/Sizing.zip",
@@ -367,25 +442,24 @@ export default class ClosetViewer {
       console.log("-- resizeAvatarWithAcc");
 
       await this.fitting.loadGarmentData({
-        garmentURL:
-          "./t1/garment.zrest",
+        garmentURL: "./t1/garment.zrest",
         samplingURL:
           "https://files.clo-set.com/public/fitting/5021883564f647b2813d57c7cd60b66c/1/0/sampling.json",
       });
 
       await this.fitting.drapingUsingZcrpURL({
-        zcrpURL:
-          "./t1/P0_175_105.zcrp",
+        zcrpURL: "./t1/P0_175_105.zcrp",
       });
 
-      const supplementsURL = "./t1/supplements.map"
+      const supplementsURL = "./t1/supplements.map";
       await this.fitting.resizingSupplementsUsingURL(supplementsURL);
     };
 
     // notWorking();
     // correctlyWorking();listZipper
     // trims();
-    test();
+    // test();
+    reloadZcrp();
 
     // opacity();
 
@@ -662,7 +736,7 @@ export default class ClosetViewer {
       }
     };
 
-    const error = function (xhr) { };
+    const error = function (xhr) {};
 
     const loaded = async (object, loadedCamera, data) => {
       this.annotation.init({
@@ -828,9 +902,8 @@ export default class ClosetViewer {
 
   // NOTE: Fitting map loader to test
   async f(mapMatMesh) {
-    await this.fitting.loadFitMap({fitMapURL: "./fm/P0_187_101.fmap"})
+    await this.fitting.loadFitMap({ fitMapURL: "./fm/P0_187_101.fmap" });
   }
-
 
   loadZrest = async (zrestData, onProgress, colorwayIndex) => {
     const zrestItem = zrestData && zrestData.result;
@@ -841,7 +914,7 @@ export default class ClosetViewer {
       await this.loadZrestUrlWithParameters(
         zrestItem,
         onProgress,
-        () => { },
+        () => {},
         colorwayIndex,
         true
       );

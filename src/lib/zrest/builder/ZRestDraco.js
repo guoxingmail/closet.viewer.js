@@ -114,6 +114,15 @@ const splitMatShapeToMatMesh = async ({
   const zrestVersion = matMeshManager.zProperty.version;
   let indexOffset = zrestVersion > 4 ? 0 : totalIndexCount;
 
+  const bFitting = matMeshManager.zProperty.bFitting;
+  if (bFitting) {
+    extractOriginalData({
+      ODM: matMeshManager.ODM,
+      listMatMeshIDOnIndexedMesh,
+      dracoGeometry,
+    });
+  }
+
   for (let m = 0; m < listIndexCount.length; ++m) {
     if (zrestVersion <= 4) {
       indexOffset = indexOffset - listIndexCount[m];
@@ -358,19 +367,6 @@ const splitMatShapeToMatMesh = async ({
     threeMesh.receiveShadow = b;
     tf.add(threeMesh);
 
-    // Temporary codes for fitting
-    // Should be removed after live
-    if (type !== MATMESH_TYPE.AVATAR_MATMESH) {
-      threeMesh.userData.originalPos = dracoGeometry.vertices;
-      threeMesh.userData.originalIndices = dracoGeometry.indices.slice(
-        indexOffset - indexSize,
-        indexOffset
-      );
-      // threeMesh.userData.originalIndices = dracoGeometry.indices;
-      threeMesh.userData.originalUv = dracoGeometry.uvs;
-      threeMesh.userData.originalUv2 = dracoGeometry.uv2s;
-    }
-
     matMeshManager.matMeshMap.set(matMeshID, threeMesh);
 
     if (zrestVersion > 4) {
@@ -388,6 +384,28 @@ const splitMatShapeToMatMesh = async ({
     }
   }
 };
+
+function extractOriginalData({
+  ODM,
+  listMatMeshIDOnIndexedMesh,
+  dracoGeometry,
+}) {
+  // NOTE: listMaMeshIDOn... elements should be the same type.
+  const type = listMatMeshIDOnIndexedMesh[0].get("enType");
+  if (type === MATMESH_TYPE.AVATAR_MATMESH) return;
+
+  const listMatMeshID = listMatMeshIDOnIndexedMesh.map((m) =>
+    m.get("uiMatMeshID")
+  );
+  const uv2 = dracoGeometry.numUVs > 1 ? dracoGeometry.uv2s : [];
+  ODM.set({
+    listMatMeshID,
+    pos: dracoGeometry.vertices,
+    index: dracoGeometry.indices,
+    uv: dracoGeometry.uvs,
+    uv2: uv2,
+  });
+}
 
 export const getAllDracoGeometry = async ({
   matMeshManager,
@@ -502,5 +520,3 @@ export const createMatMesh = async (
 
   await Promise.all(newListMatShape);
 };
-
-function processFittingData() {}

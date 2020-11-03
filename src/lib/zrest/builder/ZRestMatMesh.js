@@ -3,6 +3,7 @@
 import * as THREE from "@/lib/threejs/three";
 
 import { createMatMesh } from "@/lib/zrest/builder/ZRestDraco";
+import ZRestOriginalDataManager from "./ZRestOriginalData";
 
 export default function MatMeshManager({
   materialInformationMap: materialInformationMap,
@@ -11,7 +12,6 @@ export default function MatMeshManager({
   zrestProperty: zProperty,
 }) {
   this.matMeshMap = zProperty.matMeshMap;
-  this.matShapeMap = zProperty.matShapeMap;
 
   this.materialInformationMap = materialInformationMap;
   this.camera = loadedCamera;
@@ -22,12 +22,10 @@ export default function MatMeshManager({
   this.matShapeMap = new Map();
 
   // For fitting
-  this.mapSCMatmeshID = new Map();
+  this.mapSCMatmeshID = new Map(); // Avatar body part
+  this.ODM = new ZRestOriginalDataManager();
 
   this.matMeshManager = zProperty.matMeshManager;
-
-  // TODO: 피팅맵 임시
-  this.zProperty.mapChangedIndex = new Map();
 }
 
 MatMeshManager.prototype = {

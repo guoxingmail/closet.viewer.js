@@ -21,10 +21,11 @@ export default class FittingGarment {
 
   // TODO: rootMap is huge. Find out the better way.
   init({ bodyVertexPos, bodyVertexIndex, zrest }) {
-    //mapBarycentricPrintTexture
-    // console.log({ bodyVertexPos, bodyVertexIndex, zrest })
     this.setBody(bodyVertexPos, bodyVertexIndex);
     this.supplements = new FittingSupplements(zrest);
+
+    // FIXME: This is dangerous code.
+    this.ODM = zrest.meshFactory.matmeshManager.ODM;
   }
 
   setBody = (bodyVertexPos, bodyVertexIndex) => {
@@ -65,9 +66,9 @@ export default class FittingGarment {
     return this.listBarycentricCoord;
   }
 
-  async loadDrapingDataFromURL({ zcrpURL }) {
-    await this.loadZcrp(zcrpURL);
-  }
+  // async loadDrapingDataFromURL({ zcrpURL }) {
+  //   await this.loadZcrp(zcrpURL);
+  // }
   
   getGarmentFileName = ({ height, weight}) => {
     return getGarmentFileName(height, weight, this.samplingJSON);
@@ -109,15 +110,15 @@ export default class FittingGarment {
         bodyVertexIndex: this.bodyVertexIndex,
       });
 
-      listMatMeshID.forEach((matMeshId) => {
-        const matMesh = mapMatMesh.get(matMeshId);
+      listMatMeshID.forEach((matMeshID) => {
+        const matMesh = mapMatMesh.get(matMeshID);
         // console.log(matMeshId, matMesh.userData.TYPE);
 
         if (!matMesh) {
           console.error(
-            "matMesh(" + matMeshId + ") is not exist on init garment"
+            "matMesh(" + matMeshID + ") is not exist on init garment"
           );
-          console.log(matMeshId);
+          console.log(matMeshID);
           console.log(mapMatMesh);
 
           return;
@@ -127,9 +128,12 @@ export default class FittingGarment {
         if (matMesh.userData.TYPE !== 0) return; // PATTERN ONLY
         // if (matMesh.userData.TYPE === 4 || matMesh.userData.TYPE === 3) return; // NORMAL_MATMESH, BUTTONHEAD
 
-        const index = matMesh.userData.originalIndices;
-        const uv = matMesh.userData.originalUv;
-        // const uv2 = matMesh.userData.originalUv2;
+        const originalData = this.ODM.get(matMeshID);
+        if (!originalData) {
+          console.warn("WARNING: Original data not found! (" + matMeshID + ")." )
+        }
+        const index = originalData.index;
+        const uv = originalData.uv;
 
         const sorted = Array.from(index).sort((a, b) => a - b);
         const minIndex = sorted[0];
@@ -146,19 +150,14 @@ export default class FittingGarment {
         const taUV = new Float32Array(arrSlicedUV);
 
         const bufferGeometry = new THREE.BufferGeometry();
-        // const bufferGeometry = matMesh.geometry;
 
         bufferGeometry.addAttribute(
           "position",
           new THREE.BufferAttribute(taPos, 3)
-          // new THREE.Float32BufferAttribute(new Float32Array(arrSlicedVertex), 3)
-          // taPos
         );
 
         bufferGeometry.setIndex(
           new THREE.BufferAttribute(taIndex, 1)
-          // new THREE.BufferAttribute(new Uint32Array(reindex), 1)
-          //new THREE.BufferAttribute(new Uint32Array(...matMesh.geometry.index.array), 1)
         );
 
         bufferGeometry.computeBoundingBox();
@@ -171,13 +170,6 @@ export default class FittingGarment {
         );
         matMesh.geometry.dispose();
         matMesh.geometry = bufferGeometry;
-        // console.log(matMesh.geometry);
-        // matMesh.geometry.attributes.uv.needsUpdate = true;
-        // matMesh.geometry.attributes.uv2.needsUpdate = true;
-
-        // matMesh.geometry.computeBoundingBox();
-        // matMesh.geometry.computeFaceNormals();
-        // matMesh.geometry.computeVertexNormals();
 
         matMesh.material.needsUpdate = true;
       });
@@ -186,6 +178,6 @@ export default class FittingGarment {
 
   async resizingSupplement(supplementsURL, mapMatMesh) {
     // TODO: Rename this module after testing, Remove return
-    return await this.supplements.test(supplementsURL, mapMatMesh);
+    return await this.supplements.processTextureSupplement(supplementsURL, mapMatMesh, this.ODM);
   }
 }

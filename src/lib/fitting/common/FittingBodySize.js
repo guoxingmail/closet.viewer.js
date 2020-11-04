@@ -12,12 +12,13 @@ export default class FittingBodySize {
   // NOTE: This function called when needs to get sizes only.
   async loadSizeFile(sizingURL) {
     const sizeObj = await processAvatarSizingBodyFile(sizingURL);
+    this.mapHeightWeightTo5Sizes.clear();
     this.mapHeightWeightTo5Sizes = sizeObj.mapHeightWeightTo5Sizes;
     console.log("Load sizing table complete.");
   }
 
   getBodySizes(height, weight) {
-    if (!this.mapHeightWeightTo5Sizes) {
+    if (this.mapHeightWeightTo5Sizes.size <= 0) {
       console.warn("WARNING: Load sizing file first.");
       console.warn("\ttry 'loadSizeFile(sizingURL)'");
     }
@@ -39,6 +40,9 @@ export default class FittingBodySize {
   }
 
   getMinMaxFromKeys(keys) {
+    if (!keys) {
+      console.warn("WARNING: Can't get size data.");
+    }
     // TODO: Remove this module after changing the type of keys
     const listKey = [...keys].map((k) => parseInt(k));
     const min = Math.min(...listKey);

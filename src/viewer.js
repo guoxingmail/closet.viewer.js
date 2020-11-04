@@ -535,11 +535,11 @@ export default class ClosetViewer {
   }
 
   getGarmentShowHideStatus() {
-    return this.getShowHideStatus(this.zrest.MATMESH_TYPE.PATTERN_MATMESH);
+    return this.getShowHideStatus(this.MATMESH_TYPE.PATTERN_MATMESH);
   }
 
   getAvatarShowHideStatus() {
-    return this.getShowHideStatus(this.zrest.MATMESH_TYPE.AVATAR_MATMESH);
+    return this.getShowHideStatus(this.MATMESH_TYPE.AVATAR_MATMESH);
   }
 
   getCameraMatrix() {

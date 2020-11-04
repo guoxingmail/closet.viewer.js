@@ -74,8 +74,6 @@ export default class ZRestLoader {
     this.getObjectsCenter = getObjectsCenter;
     this.zoomToObjects = zoomToObjects;
 
-    // this.MATMESH_TYPE = MATMESH_TYPE;
-
     this.isSeparate = () => {
       return this.zProperty.bSeparate;
     };

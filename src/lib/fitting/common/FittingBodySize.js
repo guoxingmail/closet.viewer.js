@@ -4,6 +4,7 @@ import { getTableSize } from "@/lib/fitting/avatar/FittingResizableBody";
 export default class FittingBodySize {
   constructor() {
     this.mapHeightWeightTo5Sizes = new Map();
+    this.loadSizeFile = this.loadSizeFile.bind(this);
     this.getBodySizes = this.getBodySizes.bind(this);
     this.getMinMaxHeight = this.getMinMaxHeight.bind(this);
     this.getMinMaxWeight = this.getMinMaxWeight.bind(this);

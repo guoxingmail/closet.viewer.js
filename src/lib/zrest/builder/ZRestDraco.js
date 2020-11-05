@@ -111,6 +111,11 @@ const splitMatShapeToMatMesh = async ({
   bLoadTransparentObject,
   materialInformationMap,
 }) => {
+  // NOTE: If the matShape is invisible, do not make matMeshes.
+  if (bVisible === 0 || bVisible === false) {
+    return;
+  }
+
   const zrestVersion = matMeshManager.zProperty.version;
   let indexOffset = zrestVersion > 4 ? 0 : totalIndexCount;
 

@@ -4,7 +4,11 @@ import leven from "leven";
 import puppeteer from "puppeteer";
 
 import * as rx from "rxjs";
+import {zip, from} from "rxjs";
+
 import * as rxOp from "rxjs/operators";
+import { map, filter, toArray } from "rxjs/operators";
+
 import * as _ from "lodash";
 import { streamScreenshots } from "../../common";
 import { template } from "./template";
@@ -14,7 +18,10 @@ import ReactDomServer from "react-dom/server";
 import * as D from "io-ts/Decoder";
 import { fold } from "fp-ts/Either";
 import { pipe, identity } from "fp-ts/function";
+import {PNG} from "pngjs";
+import { fst, snd } from "fp-ts/lib/ReadonlyTuple";
 
+declare var reporter: any;
 const casesPath = P.resolve(__dirname, "cases");
 const ModelMeta = D.type({
   url: D.string,
@@ -40,8 +47,15 @@ describe.each(testCases)("graphic", (casePath: string) => {
 
   it(
     testName,
-    async () => {
-      const temp = template(new U.URL(modelMeta.url));
+    (done) => {
+      const temp = template(
+        U.pathToFileURL(
+          P.resolve(__dirname, "..", "..", "..", "dist", "closet.viewer.js")
+        ),
+        new U.URL(modelMeta.url)
+      );
+
+      reporter.description(`${testName} multi-perspective test`);
 
       const expectPath = P.join(casePath, "expect");
       const expectImgs = fs
@@ -50,29 +64,28 @@ describe.each(testCases)("graphic", (casePath: string) => {
         .sort()
         .map((x) => P.join(expectPath, x))
         .map((x) => fs.readFileSync(x));
+      
+      const html = ReactDomServer.renderToStaticMarkup(temp)
+      const imagePairs = zip(
+        streamScreenshots(html),
+        from(expectImgs)
+      )
 
-      const scores = await rx
-        .zip(
-          streamScreenshots(ReactDomServer.renderToStaticMarkup(temp)),
-          rx.from(expectImgs)
-        )
-        .pipe(rxOp.map(calculateDifference), rxOp.mergeAll(), rxOp.toArray())
-        .toPromise();
-
-      console.log({ scores });
-      scores.forEach((x) => {
-        expect(x).toBeLessThan(8);
+      filter(isDifferent)(imagePairs).subscribe({
+        next([expected, result]) {
+          reporter.addAttachment(`Expected`, expected, "image/png");
+          reporter.addAttachment(`instead of`, result, "image/png");
+          expect(false).toBeTruthy();
+        },
+        complete: done,
       });
     },
     50000
   );
 });
 
-async function calculateDifference([a, b]: [Buffer, Buffer]) {
-  const hash1 = await hash(a, 64);
-  const hash2 = await hash(b, 64);
-
-  const dist = leven(hash1, hash2);
-
-  return dist;
+export function isDifferent([a, b]: [Buffer, Buffer]):boolean {
+  const x = PNG.sync.read(a);
+  const y = PNG.sync.read(b);
+  return x.data.compare(y.data) !== 0;
 }

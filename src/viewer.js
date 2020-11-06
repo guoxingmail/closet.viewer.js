@@ -14,7 +14,7 @@ import screenfull from "screenfull";
 import MobileDetect from "mobile-detect";
 
 import { MATMESH_TYPE } from "@/lib/clo/readers/predefined";
-
+import { capturePrincipleViews } from "./lib/clo/utils/PrincipleViews";
 let windowHalfX = window.innerWidth / 2;
 let windowHalfY = window.innerHeight / 2;
 
@@ -642,6 +642,17 @@ export default class ClosetViewer {
     if (this.annotation) {
       this.annotation.clear();
     }
+  }
+
+  capturePrincipleViews() {
+    this.controls.update();
+    return capturePrincipleViews(
+      this.scene,
+      this.camera,
+      this.object3D,
+      512,
+      512
+    );
   }
 }
 

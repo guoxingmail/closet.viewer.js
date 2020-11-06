@@ -23,3 +23,4 @@ reports:
 artifacts:
   files:
     - metric-report.json
+    - allure-results/**/*

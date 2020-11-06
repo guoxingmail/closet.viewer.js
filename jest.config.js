@@ -4,7 +4,7 @@ module.exports = {
     globalSetup: '<rootDir>/ci/jestSetup.js',
     globalTeardown: '<rootDir>/ci/jestTeardown.js',
     testEnvironment: '<rootDir>/ci/jestEnvironment.js',
-    setupFilesAfterEnv: ['<rootDir>/ci/jestAfterEnvSetup.js'],
+    setupFilesAfterEnv: ['<rootDir>/ci/jestAfterEnvSetup.js', "jest-allure/dist/setup"],
     reporters: [
         'default',
         ['jest-junit', {

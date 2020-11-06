@@ -2,9 +2,7 @@ import puppeteer from "puppeteer";
 import * as fs from "fs";
 import { isRight } from "fp-ts/Either";
 import * as D from "io-ts/Decoder";
-import MetricReporter, {
-  Measurement,
-} from "../MetricReporter";
+import MetricReporter, { Measurement } from "../MetricReporter";
 import * as webpackConfig from "../../webpack.config";
 import P from "path";
 import { streamPageEvents } from "../common";
@@ -34,12 +32,22 @@ test("Bundle size test", () => {
 });
 
 test("Denim loading bechmark", async () => {
-  const html = ReactDomServer.renderToStaticMarkup(template(URL.pathToFileURL(P.resolve(__dirname, 'denim.zrest'))));
-  await streamPageEvents(html, reportMetric("denim loading benchmarking")).toPromise();
+  const html = ReactDomServer.renderToStaticMarkup(
+    template(
+      URL.pathToFileURL(
+        P.resolve(__dirname, "..", "..", "dist", "closet.viewer.js")
+      ),
+      URL.pathToFileURL(P.resolve(__dirname, "denim.zrest"))
+    )
+  );
+  await streamPageEvents(
+    html,
+    reportMetric("denim loading benchmarking")
+  ).toPromise();
   expect(true).toBeTruthy();
-}, 10000);
+}, 120000);
 
-const reportMetric = (testName:string) => async (page: puppeteer.Page) => {
+const reportMetric = (testName: string) => async (page: puppeteer.Page) => {
   const metrics = await page.metrics();
 
   const decoded = ChromeMetric.decode(metrics);
@@ -47,11 +55,15 @@ const reportMetric = (testName:string) => async (page: puppeteer.Page) => {
     metricReporter.report({
       [testName]: {
         JSHeapUsedSize: new Measurement("bytes", decoded.right.JSHeapUsedSize),
-        JSHeapTotalSize: new Measurement("bytes", decoded.right.JSHeapTotalSize),
+        JSHeapTotalSize: new Measurement(
+          "bytes",
+          decoded.right.JSHeapTotalSize
+        ),
         TaskDuration: new Measurement("s", decoded.right.TaskDuration),
       },
     });
   } else {
     console.log("failed to decode ChromeMetric", metrics);
   }
-}
+  return Promise.resolve("done"); // return anything to trigger the end of async task
+};

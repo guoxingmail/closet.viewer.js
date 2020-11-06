@@ -17,6 +17,7 @@ export const template = (libURL: U.URL, zrestURL: U.URL) => (
         });
         closet.viewer.loadZrestUrl('${zrestURL}', function(x){}, function(x){
           (async function() {
+            closet.viewer.recursiveObjectwiseViewFrustumCulling();
             fetch("http://screenshotrequest.clo", {
               method: "POST",
               body: JSON.stringify({

@@ -30,14 +30,18 @@ function makeFrustum(camera: Camera): Frustum {
   );
   return frustum;
 }
+export function recursiveObjectwiseViewFrustumCulling(
+  camera: Camera,
+  object3D: Object3D
+) {
+  excludeOutliers(makeFrustum(camera))(object3D);
+}
 export function capturePrincipleViews(
   scene: Scene,
-  camera: Camera,
   object3D: Object3D,
   width: number,
   height: number
 ) {
-  excludeOutliers(makeFrustum(camera))(object3D)
   const QUATER = Math.PI / 2;
   const rotations = [
     new Euler(0, 0, 0),

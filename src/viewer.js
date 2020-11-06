@@ -14,7 +14,7 @@ import screenfull from "screenfull";
 import MobileDetect from "mobile-detect";
 
 import { MATMESH_TYPE } from "@/lib/clo/readers/predefined";
-import { capturePrincipleViews } from "./lib/clo/utils/PrincipleViews";
+import { capturePrincipleViews, recursiveObjectwiseViewFrustumCulling } from "./lib/clo/utils/PrincipleViews";
 let windowHalfX = window.innerWidth / 2;
 let windowHalfY = window.innerHeight / 2;
 
@@ -644,11 +644,13 @@ export default class ClosetViewer {
     }
   }
 
-  capturePrincipleViews() {
+  recursiveObjectwiseViewFrustumCulling () {
     this.controls.update();
+    recursiveObjectwiseViewFrustumCulling(this.camera, this.object3D);
+  }
+  capturePrincipleViews() {
     return capturePrincipleViews(
       this.scene,
-      this.camera,
       this.object3D,
       512,
       512

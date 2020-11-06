@@ -21,14 +21,14 @@ export default class FittingGarment {
 
   // TODO: rootMap is huge. Find out the better way.
   init({ bodyVertexPos, bodyVertexIndex, zrest }) {
-    this.setBody(bodyVertexPos, bodyVertexIndex);
+    this.setBody({ bodyVertexPos, bodyVertexIndex} );
     this.supplements = new FittingSupplements(zrest);
 
     // FIXME: This is dangerous code.
     this.ODM = zrest.meshFactory.matmeshManager.ODM;
   }
 
-  setBody = (bodyVertexPos, bodyVertexIndex) => {
+  setBody = ({bodyVertexPos, bodyVertexIndex}) => {
     this.bodyVertexPos = bodyVertexPos;
     this.bodyVertexIndex = bodyVertexIndex;
   }

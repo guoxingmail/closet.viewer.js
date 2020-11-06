@@ -4,11 +4,6 @@ import * as THREE from "@/lib/threejs/three";
 
 import { TEXTURE_TYPE } from "@/lib/zrest/common/ZRestConst";
 
-const getFilenameFromURL = (url) => {
-  const urlSplit = url.split("/");
-  return urlSplit[urlSplit.length - 1];
-};
-
 export async function loadZrestTexture({
   matProperty: matProperty,
   threeJSMaterial: threeJSMaterial,
@@ -128,6 +123,11 @@ export async function setTexturePropertyDisassembly({
       }
     });
   });
+}
+
+function getFilenameFromURL(url) {
+  const urlSplit = url.split("/");
+  return urlSplit[urlSplit.length - 1];
 }
 
 const getThreeJSTexture = async (filename, jsZip, zProperty) => {

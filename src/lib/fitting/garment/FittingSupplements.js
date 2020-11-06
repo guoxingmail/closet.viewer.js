@@ -8,7 +8,7 @@ import {
   processZipper,
   processButtonHead,
 } from "@/lib/fitting/garment/FittingTrims";
-import { loadFile, unZip } from "@/lib/clo/readers/FileLoader";
+import { loadFile } from "@/lib/clo/readers/FileLoader";
 import { readMap } from "@/lib/clo/file/KeyValueMapReader";
 import { MATMESH_TYPE } from "@/lib/zrest/common/ZRestConst";
 
@@ -17,33 +17,22 @@ export default class FittingSupplements {
     const zProperty = zrest.zProperty;
 
     this.mapMatMesh = zProperty.matMeshMap;
-    // this.mapBarycentricPrintTexture = zProperty.rootMap.get(
-    //   "mapBarycentricPrintTexture"
-    // );
-    // this.listPrintBary = this.mapBarycentricPrintTexture
-    //   ? this.mapBarycentricPrintTexture.get("listPrintTextureBarycentric")
-    //   : [];
-
-    // NOTE: Test only
-    // processOverrayPrint(this.listPrintBary, zrest);
-
-    // this.mapPrintTexture = this.read(this.listPrintBary);
-    // console.log(this.mapPrintTexture);
-
     console.log("FittingSupplements load complete");
   }
 
-  cleanUp(mapMatMesh) {
+  cleanUp(mapMatMesh, ODM) {
     console.log("cleanUp");
     mapMatMesh.forEach((matMesh) => {
       const type = matMesh.userData.TYPE;
       if (MATMESH_TYPE.isSupplement(type)) {
-        matMesh.geometry.index.array = matMesh.userData.originalIndices;
-        matMesh.geometry.attributes.position.array =
-          matMesh.userData.originalPos;
-        matMesh.geometry.attributes.uv.array = matMesh.userData.originalUv;
-        matMesh.geometry.attributes.position.array =
-          matMesh.userData.originalPos;
+        // FIXME: This is dangerous code
+        const matMeshID = matMesh.userData.MATMESH_ID;
+        const originalData = ODM.get(matMeshID);
+
+        matMesh.geometry.index.array = originalData.index;
+        matMesh.geometry.attributes.position.array = originalData.pos;
+        matMesh.geometry.attributes.uv.array = originalData.uv;
+
         matMesh.geometry.computeFaceNormals();
         matMesh.geometry.computeVertexNormals();
         matMesh.userData.isCleanedUp = true;
@@ -51,13 +40,13 @@ export default class FittingSupplements {
     });
   }
 
-  async test(supplementsFile, mapMatMesh) {
+  async processTextureSupplement(supplementsFile, mapMatMesh, ODM) {
     const rootMap = await this.load(supplementsFile);
 
     console.log("rootMap");
     console.log(rootMap);
 
-    this.cleanUp(mapMatMesh);
+    this.cleanUp(mapMatMesh, ODM);
 
     const listBarycentricPrint = rootMap
       .get("mapBarycentricPrintTexture")

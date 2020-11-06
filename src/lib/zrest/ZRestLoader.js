@@ -13,7 +13,6 @@ import {
   setTexturePropertyDisassembly,
 } from "./builder/ZRestTexture";
 
-import { MATMESH_TYPE } from "@/lib/zrest/common/ZRestConst";
 import ZRestMeshFactory from "./builder/ZRestMeshFactory";
 import ZRestWireframe from "./interface/ZRestWireframe";
 
@@ -74,8 +73,6 @@ export default class ZRestLoader {
     // Export functions
     this.getObjectsCenter = getObjectsCenter;
     this.zoomToObjects = zoomToObjects;
-
-    this.MATMESH_TYPE = MATMESH_TYPE;
 
     this.isSeparate = () => {
       return this.zProperty.bSeparate;
@@ -141,10 +138,8 @@ export default class ZRestLoader {
         matMesh.material,
         THREE.ShaderMaterial,
         function () {
-          // console.log("success deallocation");
         },
         function () {
-          console.log("unsuccess deallocation");
         }
       );
     }
@@ -351,7 +346,7 @@ export default class ZRestLoader {
         return extension === "rest";
       });
 
-      // Uncompress zip (restFile)
+      // Decompress zip (restFile)
       const restContent = await zip.file(restFileName).async("arrayBuffer");
       // return restContent;
       return await this.parseRestContents(object3D, restContent, zip);

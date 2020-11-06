@@ -93,11 +93,6 @@ export default class Fitting {
     armLength = -1,
     legLength = -1,
   }) {
-    // console.log({
-    //   height,
-    //   weight,
-    //   bodyShape,
-    // });
     await this.resizeAvatar({
       height,
       weight,
@@ -185,6 +180,10 @@ export default class Fitting {
     await this.garment.loadZcrp(zcrpURL);
     const listBarycentricCoord = this.garment.listBarycentricCoord;
     const mapMatMesh = this.zrest.matMeshMap;
+    this.garment.setBody({
+      bodyVertexIndex: this.avatar.bodyVertexIndex,
+      bodyVertexPos: this.avatar.bodyVertexPos,
+    });
     this.garment.draping({ listBarycentricCoord, mapMatMesh });
   }
 

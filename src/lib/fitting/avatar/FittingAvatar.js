@@ -21,15 +21,15 @@ export default class FittingAvatar {
   init() {
     if (!this.zrest) return;
 
-    const arrFoundContainer = this.parentContainer.children.filter(
+    const listFoundContainer = this.parentContainer.children.filter(
       (obj) => obj.name === "fittingAvatarContainer"
     );
 
-    if (arrFoundContainer.length <= 0) {
+    if (listFoundContainer.length <= 0) {
       console.error("FittingAvatar init failed.");
     }
 
-    this.avatarContainer = arrFoundContainer[0];
+    this.avatarContainer = listFoundContainer[0];
 
     const avatarGeometry = new Map(
       this.zrest.zProperty.rootMap.get("mapGeometry")
@@ -45,10 +45,6 @@ export default class FittingAvatar {
     this.accessory = new FittingAccessory(listSkinController, this.scManager);
     this.accessory.attachThreeJSContainer(this.parentContainer);
     this.accessory.putBodyVertexInfo(this.bodyVertexPos, this.bodyVertexIndex);
-
-    // this.mapSkinController = this.convertListSCtoMap(listSkinController);
-    // console.warn("mapSkinController");
-    // console.warn(this.mapSkinController)
   }
 
   // Init resizable body and accessory
@@ -133,19 +129,8 @@ export default class FittingAvatar {
     // else console.warn("Can't access accessory");
   }
 
-  getAvatarURL({ id: avatarId, skinType: avatarSkinType }) {
-    this.avatarId = avatarId;
-
-    const listById = this.mapAvtPath.get(avatarId);
-    const zrestFileName = listById[avatarSkinType];
-    const avtURL = this.avtRootPath + "/" + zrestFileName;
-    console.log(avtURL);
-    return avtURL;
-  }
-
   loadGeometry({ mapGeometry: mapGeometry }) {
     this.extractController(mapGeometry);
-    // this.convertListSCtoMap(this.listSkinController);
     return this.listSkinController;
   }
 
@@ -160,12 +145,6 @@ export default class FittingAvatar {
     const meshPosition = readByteArray("Float", mapMesh.get("baPosition"));
     this.bodyVertexIndex = meshIndex;
     this.bodyVertexPos = meshPosition;
-
-    // TODO: Set this function correctly
-    // this.garment.setBody(this.bodyVertexPos, this.bodyVertexIndex);
-
-    // NOTE: For test only
-    // this.avatar.buildMeshUsingMapMesh(mapMesh);
   }
 
   // TODO: Refactor this module

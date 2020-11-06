@@ -16,12 +16,6 @@ const getDracoGeometry = async ({
   }
 
   const getFromMapDracoData = async () => {
-    // TODO: This is really dangerous code!
-    // const order = dracoMeshFilename.replace("drc", "").replace(".", "");
-    // console.log(order);
-    // console.log(JSZipOrDracoData);
-    // console.log(dracoMeshFilename);
-
     return JSZipOrDracoData.get(dracoMeshFilename);
   };
 
@@ -104,25 +98,39 @@ const buildStyleLines = (
 
 // TODO: Do refactor more!
 // TODO: Is this the appropriate function name??
-const splitMatShapeToMatMesh = async (
+const splitMatShapeToMatMesh = async ({
   matMeshManager,
   listMatMeshIDOnIndexedMesh,
-  totalIdxCount,
-  listIdxCount,
+  totalIndexCount,
+  listIndexCount,
   dracoGeometry,
   bVisible,
   frontVertexCount,
   JSZipOrDracoData,
   tf,
   bLoadTransparentObject,
-  materialInformationMap
-) => {
-  const zrestVersion = matMeshManager.zProperty.version;
-  let indexOffset = zrestVersion > 4 ? 0 : totalIdxCount;
+  materialInformationMap,
+}) => {
+  // NOTE: If the matShape is invisible, do not make matMeshes.
+  if (bVisible === 0 || bVisible === false) {
+    return;
+  }
 
-  for (let m = 0; m < listIdxCount.length; ++m) {
+  const zrestVersion = matMeshManager.zProperty.version;
+  let indexOffset = zrestVersion > 4 ? 0 : totalIndexCount;
+
+  const bFitting = matMeshManager.zProperty.bFitting;
+  if (bFitting) {
+    extractOriginalData({
+      ODM: matMeshManager.ODM,
+      listMatMeshIDOnIndexedMesh,
+      dracoGeometry,
+    });
+  }
+
+  for (let m = 0; m < listIndexCount.length; ++m) {
     if (zrestVersion <= 4) {
-      indexOffset = indexOffset - listIdxCount[m];
+      indexOffset = indexOffset - listIndexCount[m];
     }
     /**
      * NOTE:
@@ -132,7 +140,7 @@ const splitMatShapeToMatMesh = async (
      */
     const matMeshID = listMatMeshIDOnIndexedMesh[m].get("uiMatMeshID");
     const matProperty = materialInformationMap.get(matMeshID);
-    const indexSize = listIdxCount[m];
+    const indexSize = listIndexCount[m];
 
     /**
      * NOTE:
@@ -328,15 +336,6 @@ const splitMatShapeToMatMesh = async (
       }
     }
 
-    // // TODO: 피팅맵 임시
-    // if (type === MATMESH_TYPE.PATTERN_MATMESH) {
-    //   matMeshManager.zProperty.mapChangedIndex.set(
-    //     matMeshID,
-    //     changeVertexIndex
-    //   );
-    //   console.log(matMeshManager.zProperty.mapChangedIndex);
-    // }
-
     const center = new THREE.Vector3(-1, -1, -1);
     const normal = new THREE.Vector3(-1, -1, -1);
     const boundingSphereRadius = 0.0;
@@ -351,19 +350,17 @@ const splitMatShapeToMatMesh = async (
       BOUNDING_SPHERE_RADIUS: boundingSphereRadius,
     };
 
-    if (zrestVersion >= 4) {
-      if (bVisible === undefined || bVisible === null) {
-        threeMesh.visible = true;
-      } else {
-        threeMesh.visible = bVisible;
-        if (bVisible === 0) {
-          threeMesh.visible = false;
-        } else if (bVisible === 1) {
-          threeMesh.visible = true;
-        }
-      }
-    } else {
+    if (zrestVersion < 4 || bVisible === undefined || bVisible === null) {
       threeMesh.visible = true;
+    } else {
+      // NOTE:
+      // This value would be '0' or 'false' depends on the DLL version.
+      // This will be fixed naturally if using Typescript.
+      if (bVisible === 0 || bVisible === false) {
+        threeMesh.visible = false;
+      } else {
+        threeMesh.visible = true;
+      }
     }
 
     let b = true;
@@ -374,40 +371,6 @@ const splitMatShapeToMatMesh = async (
     threeMesh.castShadow = b;
     threeMesh.receiveShadow = b;
     tf.add(threeMesh);
-
-    // Temporary codes for fitting
-    // Should be removed after live
-    if (type !== MATMESH_TYPE.AVATAR_MATMESH) {
-      threeMesh.userData.originalPos = dracoGeometry.vertices;
-      threeMesh.userData.originalIndices = dracoGeometry.indices.slice(
-        indexOffset - indexSize,
-        indexOffset
-      );
-      // threeMesh.userData.originalIndices = dracoGeometry.indices;
-      threeMesh.userData.originalUv = dracoGeometry.uvs;
-      threeMesh.userData.originalUv2 = dracoGeometry.uv2s;
-    }
-
-    // console.log(dracoGeometry.indices);
-    // console.log("====");
-    // console.log(
-    //   matMeshID,
-    //   "offset size: ",
-    //   indexOffset - indexSize,
-    //   indexOffset
-    //   // indexOffset + indexSize
-    // );
-    // console.log(
-    //   dracoGeometry.indices.slice(indexOffset, indexSize + indexOffset)
-    // );
-    // threeMesh.userData.originalIndices = dracoGeometry.indices.slice(
-    //   indexOffset,
-    //   indexSize
-    // );
-
-    // console.log("=", indexAttrib.length, dracoGeometry.indices.length);
-    // console.log("=", combinedVertice.length, dracoGeometry.vertices.length);
-    // console.log(combinedVertice);
 
     matMeshManager.matMeshMap.set(matMeshID, threeMesh);
 
@@ -424,12 +387,30 @@ const splitMatShapeToMatMesh = async (
 
       cameraPos.add(distanceVector);
     }
-
-    // TODO: Fittig ONLY
-    // listMatMeshIDOnIndexedMesh[m].get("uiMatMeshID");
-    // console.log(combinedVertice.length);
   }
 };
+
+function extractOriginalData({
+  ODM,
+  listMatMeshIDOnIndexedMesh,
+  dracoGeometry,
+}) {
+  // NOTE: listMaMeshIDOn... elements should be the same type.
+  const type = listMatMeshIDOnIndexedMesh[0].get("enType");
+  if (type === MATMESH_TYPE.AVATAR_MATMESH) return;
+
+  const listMatMeshID = listMatMeshIDOnIndexedMesh.map((m) =>
+    m.get("uiMatMeshID")
+  );
+  const uv2 = dracoGeometry.numUVs > 1 ? dracoGeometry.uv2s : [];
+  ODM.set({
+    listMatMeshID,
+    pos: dracoGeometry.vertices,
+    index: dracoGeometry.indices,
+    uv: dracoGeometry.uvs,
+    uv2: uv2,
+  });
+}
 
 export const getAllDracoGeometry = async ({
   matMeshManager,
@@ -514,7 +495,7 @@ export const createMatMesh = async (
 
     const bVisible = matShape.get("bMatShapeVisible") || false;
 
-    await splitMatShapeToMatMesh(
+    await splitMatShapeToMatMesh({
       matMeshManager,
       listMatMeshIDOnIndexedMesh,
       totalIndexCount,
@@ -525,8 +506,8 @@ export const createMatMesh = async (
       JSZipOrDracoData,
       tf,
       bLoadTransparentObject,
-      materialInformationMap
-    );
+      materialInformationMap,
+    });
 
     const listLine = matShape.get("listLine");
     const firstMatMeshID = listMatMeshIDOnIndexedMesh[0].get("uiMatMeshID");

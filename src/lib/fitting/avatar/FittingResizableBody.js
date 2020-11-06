@@ -36,10 +36,6 @@ export default class ResizableBody {
       mapBaseMesh
     );
     this.mapStartIndex = mapBaseMesh.get("mapStartIndex");
-
-    this.getSizes = (height, weight) => {
-      return getTableSize(height, weight, this.mHeightWeightTo5SizesMap);
-    }
   }
 
   setFeatureEnable = () => {
@@ -89,7 +85,10 @@ export default class ResizableBody {
     // console.warn(MEASUREMENT_LIST_NAME.SIZE_OF_MEASUREMENT_LIST);
 
     const tableSize = getTableSize(height, weight, this.mHeightWeightTo5SizesMap);
-    if (!tableSize) return;
+    if (!tableSize) {
+      console.warn("Table size not found! height: " + height + ", weight: " + weight);
+      return;
+    }
 
     const changedSize = this.applyBodyShape(
       bodyShape,
@@ -398,24 +397,17 @@ export function getTableSize(height, weight, table) {
     console.log("No table data found");
     return;
   }
-  // console.log(this.mHeightWeightTo5SizesMap);
-  // console.log(height, weight);
   const heightTable = table.get(String(height));
   const arrSize = heightTable ? heightTable.get(String(weight)) : null;
 
   if (!arrSize) {
-    console.error(
+    console.warn(
       "ERROR: No data found. height: " + height + ", weight: " + weight
     );
     console.log(table);
-    // console.log(this.mHeightWeightTo5SizesMap);
     return;
   }
-  // const arrSize = this.mHeightWeightTo5SizesMap
-  //   .get(String(height))
-  //   .get(String(weight));
 
-  // TODO: Check if this order is correct
   const returnValue = {};
   returnValue["chest"] = arrSize[0];
   returnValue["waist"] = arrSize[1];
@@ -423,6 +415,5 @@ export function getTableSize(height, weight, table) {
   returnValue["armLength"] = arrSize[3];
   returnValue["legLength"] = arrSize[4];
 
-  // console.log(returnValue);
   return returnValue;
 };

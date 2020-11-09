@@ -5,7 +5,7 @@ export function processTrims(listBarycentricTrim, mapMatMesh) {
     parseThenProcess({
       mapMatMesh: mapMatMesh,
       mapData: trim,
-      arrMatMeshField: "arrTrimMeshID",
+      arrMatMeshField: "arrTrimMatMeshID",
     });
   });
 }

@@ -39,7 +39,7 @@ export default class FittingAvatar {
     });
     this.setAvatarInfo(listSkinController);
 
-    this.scManager = new FittingSkinControllerManager(this.zrest);
+    this.scManager = new FittingSkinControllerManager();
     this.scManager.init(this.zrest);
 
     this.accessory = new FittingAccessory(listSkinController, this.scManager);
@@ -54,7 +54,6 @@ export default class FittingAvatar {
       mapBaseMesh: avatarSizingInfoObj.mapBaseMesh,
       convertingMatData: avatarSizingInfoObj.convertingMatData,
       mapHeightWeightTo5Sizes: avatarSizingInfoObj.mapHeightWeightTo5Sizes,
-      mapAccessoryMesh: avatarSizingInfoObj.mapAccessoryMesh,
       scManager: this.scManager,
     });
 
@@ -83,8 +82,6 @@ export default class FittingAvatar {
       legLength
     );
 
-    // console.log(computed);
-
     // TODO: CHECK THIS OUT
     const v = [];
     computed.forEach((vector) => {
@@ -97,11 +94,6 @@ export default class FittingAvatar {
     const l = this.bodyVertexPos.length;
     const nb = v.slice(0, l);
     this.bodyVertexPos = nb.map((x) => x * 10);
-    // const bv = [];
-
-    // const bufferGeometry = new THREE.BufferGeometry();
-    if (this.resizableBufferGeometry) this.resizableBufferGeometry.dispose();
-    this.resizableBufferGeometry = new THREE.BufferGeometry();
 
     for (const entries of this.resizableBody.mapStartIndex.entries()) {
       const partName = entries[0];
@@ -110,7 +102,6 @@ export default class FittingAvatar {
         computed
       );
       console.log("\t\t++" + partName);
-      // console.log(v);
       this.resizableBody.scManager.putVertexOntoMatMeshByPartName(
         partName,
         partRenderPos
@@ -125,8 +116,7 @@ export default class FittingAvatar {
         this.bodyVertexIndex
       );
       this.accessory.resize();
-    }
-    // else console.warn("Can't access accessory");
+    } else console.warn("Can't access accessory");
   }
 
   loadGeometry({ mapGeometry: mapGeometry }) {

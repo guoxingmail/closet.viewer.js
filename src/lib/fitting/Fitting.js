@@ -130,7 +130,10 @@ export default class Fitting {
   }
 
   resizeAccessory() {
-    if (!this.avatar) return;
+    if (!this.avatar) {
+      console.warn("Avatar not found @resize Accessory");
+      return;
+    }
     this.avatar.resizeAccessory();
   }
 

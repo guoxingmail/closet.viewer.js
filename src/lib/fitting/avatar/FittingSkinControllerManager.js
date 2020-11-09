@@ -7,10 +7,6 @@ export default class FittingSkinControllerManager {
   init(zrest) {
     this.mapSCMatMeshID = zrest.meshFactory.matmeshManager.mapSCMatmeshID;
     this.mapMatMesh = zrest.zProperty.matMeshMap;
-
-    // console.log(zrest);
-    // console.warn(zrest.meshFactory.matmeshManager.mapSCMatmeshID);
-    // console.warn(zrest.matMeshMap);
   }
 
   // NOTE:
@@ -18,7 +14,8 @@ export default class FittingSkinControllerManager {
   // This function returns whole vertices of the body part.
   getVertexOntoMatMeshByPartName = (partName) => {
     const combinedVertex = [];
-    this.mapSCMatMeshID.get(partName).forEach((matMeshId) => {
+    this.mapSCMatMeshID.get(partName).forEach((oriMatMeshId) => {
+      const matMeshId = this.getAvtMatMeshID(oriMatMeshId);
       const matMesh = this.mapMatMesh.get(matMeshId);
       if (!matMesh) console.warn(matMeshId);
       const vertex = matMesh.geometry.attributes.position.array;
@@ -39,7 +36,8 @@ export default class FittingSkinControllerManager {
 
     let lastIndex = 0;
     const retListMatMesh = [];
-    this.mapSCMatMeshID.get(partName).forEach((matMeshId) => {
+    this.mapSCMatMeshID.get(partName).forEach((oriMatMeshId) => {
+      const matMeshId = this.getAvtMatMeshID(oriMatMeshId);
       const matMesh = this.mapMatMesh.get(matMeshId);
       retListMatMesh.push(matMesh);
 
@@ -60,6 +58,10 @@ export default class FittingSkinControllerManager {
 
     return retListMatMesh;
   };
+
+  getAvtMatMeshID = (originalMatMeshID) => {
+    return originalMatMeshID + 500000; // NOTE: 500000 is prefix for avatar
+  }
 
   validate = (mapMatShapeRenderToSkinPos) => {
     for (const entries of mapMatShapeRenderToSkinPos.entries()) {

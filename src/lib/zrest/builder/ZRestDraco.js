@@ -113,6 +113,7 @@ const splitMatShapeToMatMesh = async ({
 }) => {
   // NOTE: If the matShape is invisible, do not make matMeshes.
   if (bVisible === 0 || bVisible === false) {
+    console.log("This matMesh is invisible");
     return;
   }
 
@@ -372,7 +373,10 @@ const splitMatShapeToMatMesh = async ({
     threeMesh.receiveShadow = b;
     tf.add(threeMesh);
 
-    matMeshManager.matMeshMap.set(matMeshID, threeMesh);
+    // TODO: Check this out
+    // NOTE: For Fitting
+    const prefixAvtMatMeshID = MATMESH_TYPE.isAvatar(type) ? 500000 : 0;
+    matMeshManager.matMeshMap.set(matMeshID + prefixAvtMatMeshID, threeMesh);
 
     if (zrestVersion > 4) {
       // marker 만들자.
@@ -467,7 +471,7 @@ export const createMatMesh = async (
       totalIndexCount += listIndexCount[m];
     }
 
-    // TODO: Remove here after test
+    // For fitting
     const mapElement = matShape.get("mapElement");
     if (mapElement) {
       const name = mapElement.get("qsNameUTF8") || mapElement.get("qsName");

@@ -16,7 +16,6 @@ export default class ResizableBody {
     mapBaseMesh: mapBaseMesh,
     convertingMatData,
     mapHeightWeightTo5Sizes: mapHeightWeightTo5Sizes,
-    mapAccessoryMesh: mapAccessoryMesh,
     scManager,
   }) {
     this.mCurrentGender = gender;
@@ -349,19 +348,13 @@ export default class ResizableBody {
 
   updateRenderPositionFromPhysical = (partName, baseVertex) => {
     const phyPosStartIndex = this.mapStartIndex.get(partName);
-    // console.log(baseVertex);
-    // console.log(this.mBaseVertex);
-    // console.log(this.mapStartIndex);
-    // console.log(partName + " phyPosStartIndex: " + phyPosStartIndex);
-
-    // const phyPos = this.mBaseVertex.slice(phyPosStartIndex);
     const phyPos = baseVertex.slice(phyPosStartIndex);
     const renderToSkinPos = this.mapMatshapeRenderToSkinPos
       .get(partName)
       .get("renderToSkinPos");
     const renderPos = new Array(renderToSkinPos.length * 3).fill(-999.999);
 
-    const multifier = 10.0;
+    const multiplier = 10.0;
     for (let i = 0; i < renderPos.length; ++i) {
       const vectorIdx = Math.trunc(i / 3);
       const renderVector = phyPos[renderToSkinPos[vectorIdx]];
@@ -379,7 +372,7 @@ export default class ResizableBody {
           renderPos[i] = renderVector.z;
           break;
       }
-      renderPos[i] *= multifier;
+      renderPos[i] *= multiplier;
     }
 
     renderPos.forEach((pos) => {

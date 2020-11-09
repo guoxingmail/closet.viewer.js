@@ -2,14 +2,17 @@ import puppeteer from "puppeteer";
 import * as fs from "fs";
 import { isRight } from "fp-ts/Either";
 import * as D from "io-ts/Decoder";
-import MetricReporter, { Measurement } from "../MetricReporter";
+import MetricReporter, { Benchmarking, Measurement } from "../MetricReporter";
 import * as webpackConfig from "../../webpack.config";
 import P from "path";
 import { streamPageEvents } from "../common";
 import URL from "url";
-import { last } from "rxjs/operators";
+import { last, map, tap } from "rxjs/operators";
 import ReactDomServer from "react-dom/server";
 import { template } from "./template";
+import * as E from "fp-ts/Either";
+import { identity } from "fp-ts/lib/function";
+
 
 declare var metricReporter: MetricReporter;
 
@@ -31,39 +34,31 @@ test("Bundle size test", () => {
   });
 });
 
-test("Denim loading bechmark", async () => {
+const benchmarkName = "denim loading benchmarking"
+test(benchmarkName, (done) => {
+  const libPath = P.resolve(__dirname, "..", "..", "dist", "closet.viewer.js");
+  const zrestPath = P.resolve(__dirname, "denim.zrest");
   const html = ReactDomServer.renderToStaticMarkup(
     template(
-      URL.pathToFileURL(
-        P.resolve(__dirname, "..", "..", "dist", "closet.viewer.js")
-      ),
-      URL.pathToFileURL(P.resolve(__dirname, "denim.zrest"))
+      URL.pathToFileURL(libPath),
+      URL.pathToFileURL(zrestPath)
     )
   );
-  await streamPageEvents(
-    html,
-    reportMetric("denim loading benchmarking")
-  ).toPromise();
-  expect(true).toBeTruthy();
+
+  streamPageEvents(html, (page) => page.metrics()).pipe(
+    map(ChromeMetric.decode),
+    map(E.fold(
+      (notChromeMetric) => { throw notChromeMetric },
+      (decoded) => ({
+        [benchmarkName]: {
+          JSHeapUsedSize: new Measurement("bytes", decoded.JSHeapUsedSize),
+          JSHeapTotalSize: new Measurement("bytes", decoded.JSHeapTotalSize),
+          TaskDuration: new Measurement("s", decoded.TaskDuration),
+        }
+      })
+    )),
+  ).subscribe({
+    next: (metric) => metricReporter.report(metric),
+    complete: done
+  })
 }, 120000);
-
-const reportMetric = (testName: string) => async (page: puppeteer.Page) => {
-  const metrics = await page.metrics();
-
-  const decoded = ChromeMetric.decode(metrics);
-  if (isRight(decoded)) {
-    metricReporter.report({
-      [testName]: {
-        JSHeapUsedSize: new Measurement("bytes", decoded.right.JSHeapUsedSize),
-        JSHeapTotalSize: new Measurement(
-          "bytes",
-          decoded.right.JSHeapTotalSize
-        ),
-        TaskDuration: new Measurement("s", decoded.right.TaskDuration),
-      },
-    });
-  } else {
-    console.log("failed to decode ChromeMetric", metrics);
-  }
-  return Promise.resolve("done"); // return anything to trigger the end of async task
-};

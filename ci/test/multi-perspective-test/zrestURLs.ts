@@ -26,4 +26,12 @@ export const zrestURLs = [
     "https://files.clo-set.com/public/marketplace/202004/134be24a5a204bc485426c0e1945209b/3/viewer.zrest",
     "https://files.clo-set.com/public/marketplace/202004/facb3096ff0e41d6b41a8483cf57b169/3/viewer.zrest",
     "https://files.clo-set.com/public/marketplace/202004/932d980856ad45eba45b2f2b4cb6c3d6/4/viewer.zrest",
+    "https://files.clo-set.com/public/marketplace/202004/bdcd536ad95b44c29c9de47e59bf2ebc/5/viewer.zrest",
+    "https://files.clo-set.com/public/marketplace/202004/b1c637b61a52461da632680a5028e233/2/viewer.zrest",
+    "https://files.clo-set.com/public/marketplace/202004/683c6a4f94544e00836f2c6dad0994f0/3/viewer.zrest",
+    "https://files.clo-set.com/public/marketplace/202004/10abee1db2ac4180a53c35700eaa2fe6/3/viewer.zrest",
+    "https://files.clo-set.com/public/marketplace/202004/1ee4a1a0de78470488e872e977f2a3a8/3/viewer.zrest",
+    "https://files.clo-set.com/public/marketplace/202004/4a0fa27a3b0040dcaebc25455a56caa7/3/viewer.zrest",
+    "https://files.clo-set.com/public/marketplace/202004/512e1509989247efb3afa61e07ec128a/3/viewer.zrest",
+    "https://files.clo-set.com/public/marketplace/202004/21f01d8deeef4363970f046e810cd88f/3/viewer.zrest"
 ].sort().map(x => new U.URL(x))

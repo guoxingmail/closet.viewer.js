@@ -1,91 +1,77 @@
 import fs from "fs";
-import { hash } from "imghash";
-import leven from "leven";
-import puppeteer from "puppeteer";
+import {zip, from, Observable} from "rxjs";
 
-import * as rx from "rxjs";
-import {zip, from} from "rxjs";
-
-import * as rxOp from "rxjs/operators";
-import { map, filter, toArray } from "rxjs/operators";
+import { map, filter, concatMap, mergeMap, tap } from "rxjs/operators";
 
 import * as _ from "lodash";
-import { streamScreenshots } from "../../common";
+import { streamPageEvents } from "../../common";
 import { template } from "./template";
 import * as U from "url";
 import * as P from "path";
-import ReactDomServer from "react-dom/server";
+import {PNG} from "pngjs";
+import { zrestURLs } from "./zrestURLs";
+import { renderToStaticMarkup } from "react-dom/server";
 import * as D from "io-ts/Decoder";
 import { fold } from "fp-ts/Either";
-import { pipe, identity } from "fp-ts/function";
-import {PNG} from "pngjs";
-import { fst, snd } from "fp-ts/lib/ReadonlyTuple";
-
+import { identity } from "fp-ts/lib/function";
 declare var reporter: any;
-const casesPath = P.resolve(__dirname, "cases");
-const ModelMeta = D.type({
-  url: D.string,
-});
-const testCases = fs
-  .readdirSync(casesPath)
-  .map((x) => P.join(casesPath, x))
-  .filter((x) => fs.statSync(x).isDirectory());
 
-describe.each(testCases)("graphic", (casePath: string) => {
-  const modelMeta = pipe(
-    ModelMeta.decode(require(P.resolve(casePath, "model.js"))),
-    fold((notMeta) => {
-      console.error({
-        msg: "Invalid meta format. Please conform to {url:string}",
-        obj: notMeta,
-      });
-      throw notMeta;
-    }, identity)
-  );
+describe("rendering test", ()=>{
+  const libPath = P.resolve(__dirname, "..", "..", "..", "dist", "closet.viewer.js")
+  const libURL = U.pathToFileURL(libPath);
+  it("rendering test", (done)=>{
+    const results = from(zrestURLs).pipe(
+      map(zrestURL => renderToStaticMarkup(template(libURL, zrestURL))),
+      concatMap(streamScreenshots),
+    )
 
-  const testName = "rendering test: " + P.basename(casePath);
+    const answers = from(answerPNGs).pipe(map((path) => fs.readFileSync(path)));
+    
+    filter(isDifferent)(zip(results, answers)).subscribe({
+      next([x,y]) {
+        reporter.addAttachment(`Expected`, x, "image/png");
+        reporter.addAttachment(`instead of`, y, "image/png");
+        expect(false).toBeTruthy();
+      },
+      complete: done
+    })
+  }, 10 * 60 * 1000)
+})
 
-  it(
-    testName,
-    (done) => {
-      const temp = template(
-        U.pathToFileURL(
-          P.resolve(__dirname, "..", "..", "..", "dist", "closet.viewer.js")
-        ),
-        new U.URL(modelMeta.url)
-      );
-
-      reporter.description(`${testName} multi-perspective test`);
-
-      const expectPath = P.join(casePath, "expect");
-      const expectImgs = fs
-        .readdirSync(expectPath)
-        .filter((x) => P.extname(x) === ".png")
-        .sort()
-        .map((x) => P.join(expectPath, x))
-        .map((x) => fs.readFileSync(x));
-      
-      const html = ReactDomServer.renderToStaticMarkup(temp)
-      const imagePairs = zip(
-        streamScreenshots(html),
-        from(expectImgs)
-      )
-
-      filter(isDifferent)(imagePairs).subscribe({
-        next([expected, result]) {
-          reporter.addAttachment(`Expected`, expected, "image/png");
-          reporter.addAttachment(`instead of`, result, "image/png");
-          expect(false).toBeTruthy();
-        },
-        complete: done,
-      });
-    },
-    50000
-  );
-});
-
-export function isDifferent([a, b]: [Buffer, Buffer]):boolean {
+function isDifferent([a, b]: [Buffer, Buffer]):boolean {
   const x = PNG.sync.read(a);
   const y = PNG.sync.read(b);
   return x.data.compare(y.data) !== 0;
 }
+
+const principleViewResponse = D.type({
+  images: D.array(D.string),
+});
+
+function streamScreenshots(html: string): Observable<Buffer> {
+  return streamPageEvents(html, async (page, req) => JSON.parse(req.postData())).pipe(
+    map(principleViewResponse.decode),
+    map(
+      fold((x) => {
+        throw x;
+      }, identity)
+    ),
+    mergeMap((x) => x.images),
+    map((dataURL) => {
+      const header = "data:image/png;base64,";
+      if (dataURL.startsWith(header)) {
+        return dataURL.substring(header.length);
+      } else {
+        throw "invalid dataurl: " + dataURL.substring(0, 32) + "...";
+      }
+    }),
+    map((base64) => Buffer.from(base64, "base64"))
+  );
+}
+
+const answersDir = P.resolve(__dirname, "answers");
+const answerPNGs = fs
+    .readdirSync(answersDir)
+    .map((x) => P.resolve(answersDir, x))
+    .filter((x) => fs.statSync(x).isFile() && P.extname(x) == ".png")
+    .sort();

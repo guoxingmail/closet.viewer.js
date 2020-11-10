@@ -23,7 +23,7 @@ export const template = (libURL: URL.URL, modelURL: URL.URL) => (
     });
     closet.viewer.loadZrestUrl('${modelURL.toString()}', function(x){}, function(x){
         (async function() {
-            await fetch("http://screenshotrequest.clo", {method: 'POST',})
+            await fetch("http://screenshotrequest.clo", {method: 'PUT',})
         })()
     })
     `,

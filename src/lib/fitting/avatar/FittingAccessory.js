@@ -80,6 +80,7 @@ export default class FittingAccessory {
 
     for (const entries of this.mapSkinMesh.entries()) {
       const partName = entries[0];
+
       const phyPos = this.mapSkinMesh.get(partName).geometry.attributes.position
         .array;
       const phyPosVec3 = convertFloatArrayToVec3Array(phyPos);
@@ -95,6 +96,7 @@ export default class FittingAccessory {
         partName,
         renderPos
       );
+      this.mapSkinMesh.get(partName).geometry.computeBoundingSphere();
       // console.log(listMatMesh);
       this.container.add(...listMatMesh);
     }
@@ -140,7 +142,6 @@ export default class FittingAccessory {
 
       mapSkinController.set(scName, sc);
     });
-    listSkinController = [];
 
     return mapSkinController;
   }
@@ -185,12 +186,9 @@ export default class FittingAccessory {
     const demarcationLine = skinController.get("fDemarcationLine");
     const ABGList = readData("Float", "baABGList");
     const triangleIndexList = readData("Uint", "baTriangleIndexList");
-    // console.log("demarcationLine: " + demarcationLine);
 
     const mapMesh = skinController.get("mapMesh");
     const meshIndex = readByteArray("Uint", mapMesh.get("baIndex"));
-    // const meshPosition = readByteArray("Float", mapMesh.get("baPosition"));
-    const vertexCount = mapMesh.get("uiVertexCount");
 
     if (ABGList.length <= 0) {
       // console.warn("ABGList is empty");

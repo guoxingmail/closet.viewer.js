@@ -54,6 +54,8 @@ export default class FittingSkinControllerManager {
         vertexArr[j] = slicedVertexArr[j];
       }
       lastIndex += vertexSize;
+
+      matMesh.geometry.computeBoundingSphere();
     });
 
     return retListMatMesh;
